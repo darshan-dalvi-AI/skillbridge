@@ -39,7 +39,9 @@ def _resolve_api_url() -> str:
 
 
 API_URL = _resolve_api_url()
-_TIMEOUT = (2.5, 6)  # (connect, read) seconds — fast offline detection
+_TIMEOUT = (10, 90)  # (connect, read): generous read so a sleeping free-tier backend
+#                     (Render cold start, up to ~60s) wakes up instead of falling back to local.
+#                     Local backend-down still fails instantly (connection refused), so no slowdown there.
 
 
 # ----------------------------------------------------------------- low level
