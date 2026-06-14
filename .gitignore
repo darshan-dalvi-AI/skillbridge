@@ -1,0 +1,17 @@
+# secrets & local data (never commit)
+.streamlit/secrets.toml
+.env
+user_data.json
+*.db
+backend/skillbridge.db
+
+# python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# local test artifacts
+_*.pdf
+_*.txt
+*.bak

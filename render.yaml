@@ -1,0 +1,24 @@
+# render.yaml — Render Blueprint for the SkillBridge backend (FastAPI).
+# Deploy: Render dashboard -> New + -> Blueprint -> pick your GitHub repo.
+# The database is Neon Postgres (set DATABASE_URL below). Without it the
+# backend would use SQLite, which Render's free disk wipes on each deploy —
+# so DATABASE_URL is required for a real cloud deploy.
+services:
+  - type: web
+    name: skillbridge-api
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: DATABASE_URL          # <- paste your Neon connection string in the dashboard
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ADZUNA_APP_ID
+        sync: false
+      - key: ADZUNA_APP_KEY
+        sync: false
