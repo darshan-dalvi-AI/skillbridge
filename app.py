@@ -190,6 +190,19 @@ section[data-testid="stFileUploaderDropzone"],
 [data-baseweb="radio"]:not(:has(input:checked)) > div:first-child,
 [data-baseweb="radio"]:not(:has(input:checked)) > div:first-child > div{
   background:var(--field-bg) !important; border-color:var(--field-bd) !important; }
+/* Streamlit's own chrome (top toolbar: Share/GitHub/edit/menu, the header hamburger, and
+   the sidebar collapse arrow) is injected OUTSIDE our theme and is light-coloured, so it
+   disappears in light mode. Force every icon there to the theme text colour -> visible in
+   BOTH modes. (These elements only render on Streamlit Cloud, not locally.) */
+[data-testid="stToolbar"] svg, [data-testid="stToolbarActions"] svg,
+[data-testid="stMainMenu"] svg, [data-testid="stHeader"] svg,
+[data-testid="stSidebarCollapseButton"] svg, [data-testid="stSidebarHeader"] svg,
+[data-testid="collapsedControl"] svg,
+[data-testid="baseButton-header"] svg, [data-testid="baseButton-headerNoPadding"] svg{
+  fill:var(--text) !important; color:var(--text) !important; opacity:0.95 !important; }
+[data-testid="stToolbar"] a, [data-testid="stToolbar"] button,
+[data-testid="stToolbarActions"] a, [data-testid="stToolbarActions"] button,
+[data-testid="stMainMenu"] button{ color:var(--text) !important; }
 """
 
 
@@ -286,7 +299,7 @@ with st.sidebar:
         st.markdown("### 👤 Account")
         if ss.auth_user:
             st.success(f"Logged in as **{ss.auth_user}**")
-            _store = "☁️ Backend (SQLite)" if api_client.is_api(ss.session) else "💾 Local (backend offline)"
+            _store = "☁️ Backend" if api_client.is_api(ss.session) else "💾 Local (backend offline)"
             st.caption(f"Saving to: {_store}")
             if st.button("Log out"):
                 ss.auth_user = None
