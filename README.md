@@ -8,7 +8,7 @@
 ![Gemini](https://img.shields.io/badge/Google_Gemini-2.0_Flash-00f5ff?style=flat-square&logo=google&logoColor=white&labelColor=04060d)
 ![NLP](https://img.shields.io/badge/NLP-Skill_Extraction-00f5a0?style=flat-square&labelColor=04060d)
 
-**🔗 Live demo:** `https://YOUR-APP-NAME.streamlit.app` *(add after deploying)*
+**🔗 Live demo:** **https://skillbridge-darshan.streamlit.app**
 
 > Final-year B.E. Computer Engineering project · Mumbai University
 
@@ -71,7 +71,7 @@ Python · Streamlit · Google Gemini 2.0 Flash · pdfplumber · custom NLP
 ## 🚀 Run locally
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/skillbridge.git
+git clone https://github.com/darshan-dalvi-AI/skillbridge.git
 cd skillbridge
 pip install -r requirements.txt
 mkdir -p .streamlit
