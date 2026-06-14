@@ -284,7 +284,8 @@ with st.sidebar:
     st.markdown("### 🎯 Your Target")
     target_role = st.selectbox("Target role you want:", list(ROLE_REQUIREMENTS.keys()))
     method = st.radio("How to provide your skills:",
-                      ["📄 Upload Resume (PDF)", "✅ Select Skills Manually"])
+                      ["📄 Upload Resume (PDF)", "📋 Paste Resume Text",
+                       "✅ Select Skills Manually"])
 
     resume_text = ""
     base_skills = []
@@ -298,6 +299,17 @@ with st.sidebar:
             else:
                 base_skills = extract_skills(resume_text)
                 st.success(f"Found {len(base_skills)} skills in your resume.")
+        st.caption("📱 On a phone and the upload fails? Switch to "
+                   "“📋 Paste Resume Text” — no file upload needed.")
+    elif method == "📋 Paste Resume Text":
+        resume_text = st.text_area(
+            "Paste your resume text here:", height=200, key="resume_paste",
+            placeholder="Open your resume, select all (Ctrl+A), copy, and paste it here…")
+        if resume_text.strip():
+            base_skills = extract_skills(resume_text)
+            st.success(f"Found {len(base_skills)} skills in your pasted resume.")
+        else:
+            st.caption("Works great on mobile — no file upload needed.")
     else:
         base_skills = st.multiselect("Select all skills you currently know:",
                                      MASTER_SKILLS, key="manual_skills")
