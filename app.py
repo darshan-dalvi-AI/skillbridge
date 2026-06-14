@@ -190,19 +190,20 @@ section[data-testid="stFileUploaderDropzone"],
 [data-baseweb="radio"]:not(:has(input:checked)) > div:first-child,
 [data-baseweb="radio"]:not(:has(input:checked)) > div:first-child > div{
   background:var(--field-bg) !important; border-color:var(--field-bd) !important; }
-/* Streamlit's own chrome (top toolbar: Share/GitHub/edit/menu, the header hamburger, and
-   the sidebar collapse arrow) is injected OUTSIDE our theme and is light-coloured, so it
-   disappears in light mode. Force every icon there to the theme text colour -> visible in
-   BOTH modes. (These elements only render on Streamlit Cloud, not locally.) */
-[data-testid="stToolbar"] svg, [data-testid="stToolbarActions"] svg,
-[data-testid="stMainMenu"] svg, [data-testid="stHeader"] svg,
-[data-testid="stSidebarCollapseButton"] svg, [data-testid="stSidebarHeader"] svg,
-[data-testid="collapsedControl"] svg,
-[data-testid="baseButton-header"] svg, [data-testid="baseButton-headerNoPadding"] svg{
-  fill:var(--text) !important; color:var(--text) !important; opacity:0.95 !important; }
-[data-testid="stToolbar"] a, [data-testid="stToolbar"] button,
-[data-testid="stToolbarActions"] a, [data-testid="stToolbarActions"] button,
-[data-testid="stMainMenu"] button{ color:var(--text) !important; }
+/* Streamlit's header toolbar (Share / GitHub / edit / star / menu) + the sidebar collapse
+   arrow live INSIDE the app. Their icons are Material-font glyphs (stIconMaterial, coloured
+   via `color`) plus a few svgs, so set BOTH color and fill to the theme text colour -> they
+   stay visible in light AND dark mode. */
+[data-testid="stToolbar"], [data-testid="stToolbar"] *,
+[data-testid="stToolbarActions"], [data-testid="stToolbarActions"] *,
+[data-testid="stToolbarActionButton"], [data-testid="stToolbarActionButton"] *,
+[data-testid="stSidebarCollapseButton"], [data-testid="stSidebarCollapseButton"] *,
+[data-testid="stSidebarHeader"] [data-testid="stIconMaterial"],
+[data-testid="stHeader"] [data-testid="stIconMaterial"],
+[data-testid="stMainMenu"], [data-testid="stMainMenu"] *{
+  color:var(--text) !important; fill:var(--text) !important; opacity:1 !important; }
+[data-testid="stHeader"] svg, [data-testid="stToolbar"] svg,
+[data-testid="stToolbarActions"] svg{ fill:var(--text) !important; color:var(--text) !important; }
 """
 
 
