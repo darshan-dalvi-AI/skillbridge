@@ -155,6 +155,13 @@ section[data-testid="stFileUploaderDropzone"],
 [data-baseweb="base-input"], [data-baseweb="textarea"]{
   background:var(--field-bg) !important; color:var(--field-fg) !important;
   border-color:var(--field-bd) !important; }
+/* input/textarea/chat placeholders -> muted theme colour so they're readable in light mode
+   (default placeholder grey was invisible on the white field). */
+.stTextInput input::placeholder, .stTextArea textarea::placeholder,
+[data-baseweb="input"] input::placeholder, [data-baseweb="base-input"] input::placeholder,
+[data-baseweb="textarea"] textarea::placeholder,
+[data-testid="stChatInput"] textarea::placeholder, [data-testid="stChatInputTextArea"]::placeholder{
+  color:var(--sub) !important; -webkit-text-fill-color:var(--sub) !important; opacity:0.9 !important; }
 [data-baseweb="select"] > div{ background:var(--field-bg) !important;
   border-color:var(--field-bd) !important; }
 [data-baseweb="select"] div, [data-baseweb="select"] span,

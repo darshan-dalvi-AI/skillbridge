@@ -9,3 +9,9 @@ textColor = "#e6eef8"
 # Hide Streamlit's developer/owner toolbar (Deploy, edit, GitHub, Manage app)
 # so the public app looks clean and there are no theme-mismatched chrome icons.
 toolbarMode = "minimal"
+
+[server]
+# Fix "AxiosError: Network Error" on file upload when the app is embedded/iframed
+# (Streamlit Cloud, esp. on mobile where 3rd-party cookies are blocked for XSRF).
+enableCORS = false
+enableXsrfProtection = false
