@@ -1,9 +1,13 @@
-# render.yaml — Render Blueprint for the SkillBridge backend (FastAPI).
-# Deploy: Render dashboard -> New + -> Blueprint -> pick your GitHub repo.
-# The database is Neon Postgres (set DATABASE_URL below). Without it the
-# backend would use SQLite, which Render's free disk wipes on each deploy —
-# so DATABASE_URL is required for a real cloud deploy.
+# render.yaml — Render Blueprint for SkillBridge (FastAPI backend + Streamlit frontend).
+# Deploy: Render dashboard -> New + -> Blueprint -> pick your GitHub repo, then fill the
+# secret env vars (marked `sync: false`) in the dashboard.
+#
+# Why the Streamlit frontend also lives here (added 2026-06-14): Streamlit Community
+# Cloud IGNORES server.enableXsrfProtection / enableCORS, which breaks st.file_uploader
+# on mobile ("AxiosError: Network Error"). On Render those settings ARE respected, so the
+# resume upload works on phones. The flags are passed on the start command below.
 services:
+  # ---------------- Backend: FastAPI REST API (data persistence) ----------------
   - type: web
     name: skillbridge-api
     runtime: python
@@ -16,6 +20,27 @@ services:
         value: "3.12.7"
       - key: DATABASE_URL          # <- paste your Neon connection string in the dashboard
         sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ADZUNA_APP_ID
+        sync: false
+      - key: ADZUNA_APP_KEY
+        sync: false
+
+  # ---------------- Frontend: Streamlit app (the website users see) ----------------
+  - type: web
+    name: skillbridge-web
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    # XSRF/CORS off here is what fixes mobile resume upload (Render honors these; Cloud did not).
+    startCommand: "streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true --server.enableCORS false --server.enableXsrfProtection false --browser.gatherUsageStats false"
+    healthCheckPath: /_stcore/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: SKILLBRIDGE_API_URL        # frontend talks to the backend over HTTP
+        value: "https://skillbridge-api-2vks.onrender.com"
       - key: GEMINI_API_KEY
         sync: false
       - key: ADZUNA_APP_ID
