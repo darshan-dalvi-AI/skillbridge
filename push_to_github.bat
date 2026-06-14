@@ -34,6 +34,9 @@ git remote remove origin 1>nul 2>nul
 git remote add origin https://github.com/darshan-dalvi-AI/skillbridge.git
 
 echo.
+echo Reconciling with anything already on GitHub (keeping our local changes)...
+git pull origin main --no-rebase --no-edit -X ours
+
 echo Pushing to GitHub...
 echo (If a "Sign in to GitHub" window pops up, click it and authorize - that is normal.)
 echo.
