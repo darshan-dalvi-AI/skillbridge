@@ -64,7 +64,7 @@ _VARS_DARK = """
  --bonus-bg:rgba(123,47,247,0.12); --bonus-fg:#b388ff; --bonus-bd:rgba(123,47,247,0.40);
  --accent1:#00f5ff; --accent2:#7b2ff7;
  --sidebar-bg:linear-gradient(180deg,#0a1020 0%,#070b16 100%);
- --field-bg:rgba(255,255,255,0.05); --field-fg:#e6eef8; --field-bd:rgba(0,245,255,0.18);
+ --field-bg:rgba(255,255,255,0.05); --field-fg:#e6eef8; --field-bd:rgba(0,245,255,0.18); --icon-invert:invert(0);
 }
 """
 _VARS_LIGHT = """
@@ -79,7 +79,7 @@ _VARS_LIGHT = """
  --bonus-bg:rgba(123,47,247,0.12); --bonus-fg:#6a25c9; --bonus-bd:rgba(123,47,247,0.35);
  --accent1:#00a7bd; --accent2:#7b2ff7;
  --sidebar-bg:linear-gradient(180deg,#eef2f8 0%,#e3e9f3 100%);
- --field-bg:#ffffff; --field-fg:#16202e; --field-bd:#c9d4e6;
+ --field-bg:#ffffff; --field-fg:#16202e; --field-bd:#c9d4e6; --icon-invert:invert(1);
 }
 """
 _BASE_CSS = """
@@ -204,6 +204,10 @@ section[data-testid="stFileUploaderDropzone"],
   color:var(--text) !important; fill:var(--text) !important; opacity:1 !important; }
 [data-testid="stHeader"] svg, [data-testid="stToolbar"] svg,
 [data-testid="stToolbarActions"] svg{ fill:var(--text) !important; color:var(--text) !important; }
+/* Toolbar action icons (star / edit / GitHub) are baked-white SVG background-images, so
+   color/fill can't touch them -> invert them to dark in light mode (left white in dark). */
+[data-testid="stToolbarActionButtonIcon"], [data-testid="stToolbarActionButton"] [data-testid="stToolbarActionButtonIcon"]{
+  filter: var(--icon-invert) !important; }
 """
 
 
