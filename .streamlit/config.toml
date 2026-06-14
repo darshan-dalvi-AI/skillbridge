@@ -4,3 +4,8 @@ primaryColor = "#00f5ff"
 backgroundColor = "#04060d"
 secondaryBackgroundColor = "#0d1b2a"
 textColor = "#e6eef8"
+
+[client]
+# Hide Streamlit's developer/owner toolbar (Deploy, edit, GitHub, Manage app)
+# so the public app looks clean and there are no theme-mismatched chrome icons.
+toolbarMode = "minimal"
