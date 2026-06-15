@@ -122,6 +122,12 @@ h1,h2,h3,h4,h5,h6{ font-family:'Space Grotesk','DM Sans',sans-serif; letter-spac
 .pill-miss{ background:var(--miss-bg); color:var(--miss-fg); border:1px solid var(--miss-bd);}
 .pill-bonus{ background:var(--bonus-bg); color:var(--bonus-fg); border:1px solid var(--bonus-bd);}
 .pill-hot{ background:rgba(245,158,11,0.14); color:#fbbf24; border:1px solid rgba(245,158,11,0.45);}
+.salary{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.95rem;
+  color:var(--have-fg); letter-spacing:-0.01em; line-height:1.12; margin:2px 0; }
+/* light-mode legibility: native captions + markdown headings follow the theme */
+[data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] p{ color:var(--sub) !important; }
+[data-testid="stMarkdownContainer"] h1, [data-testid="stMarkdownContainer"] h2,
+[data-testid="stMarkdownContainer"] h3, [data-testid="stMarkdownContainer"] h4{ color:var(--text) !important; }
 .sec-label{ font-family:'Space Grotesk'; font-weight:600; color:var(--text); font-size:1.0rem;
   margin:14px 0 8px; letter-spacing:-0.01em;}
 .stButton>button{ background:linear-gradient(135deg,#22c55e,#16a34a);
@@ -438,7 +444,7 @@ with tabs[0]:
             if sal:
                 st.markdown('<div class="sec-label">💰 Fresher salary (India)</div>',
                             unsafe_allow_html=True)
-                st.markdown(f"### ₹{sal['low']}–{sal['high']} LPA")
+                st.markdown(f'<div class="salary">₹{sal["low"]}–{sal["high"]} LPA</div>', unsafe_allow_html=True)
                 st.caption(f"Median ≈ ₹{sal['median']} LPA · indicative, varies by "
                            "company/city/skills.")
 
