@@ -352,6 +352,45 @@ def cached_live_skills(role):
     return fetch_live_skills(role)
 
 
+# ------------------------------------------------------- RESTORE ON REFRESH
+def _restore_profile_once():
+    """On a fresh load, pull the signed-in user's saved profile back from the backend
+    so a refresh does not wipe their skills / role / resume. (Google sessions persist
+    across refresh via cookie; email/password sessions restore on next login.)"""
+    if ss.get("_restored"):
+        return
+    try:
+        _gauth = "auth" in st.secrets
+    except Exception:
+        _gauth = False
+    _gu = getattr(st, "user", None)
+    if _gauth and _gu is not None and getattr(_gu, "is_logged_in", False) and not ss.auth_user:
+        _em = (getattr(st.user, "email", "") or "").strip().lower()
+        if _em:
+            _pw = hashlib.sha256(("skbridge-oauth::" + _em).encode()).hexdigest()[:24]
+            ok, _m, sess = api_client.authenticate(_em, _pw)
+            if not ok:
+                ok, _m, sess = api_client.register(_em, _pw)
+            if ok:
+                ss.auth_user = sess["username"]; ss.session = sess
+    if ss.auth_user and api_client.is_api(ss.session):
+        prof = api_client.get_profile(ss.session)
+        _sk = [s for s in (prof.get("skills") or []) if s in MASTER_SKILLS]
+        if _sk:
+            ss.setdefault("manual_skills", _sk)
+            ss.setdefault("skill_method", "✅ Select Skills Manually")
+            ss["_restored_skills"] = _sk
+        if prof.get("target_role") in ROLE_REQUIREMENTS:
+            ss.setdefault("role_sel", prof["target_role"])
+        if prof.get("resume_text"):
+            ss.resume_text = prof["resume_text"]
+        ss.learned = api_client.get_progress(ss.session, ss.auth_user).get("learned", [])
+        ss["_restored"] = True
+
+
+_restore_profile_once()
+
+
 # ---------------------------------------------------------------- SIDEBAR
 with st.sidebar:
     top_box = st.container()  # account + theme show here (visually first)
@@ -359,10 +398,10 @@ with st.sidebar:
     # Skills & role are instantiated FIRST so the login/logout reruns in the
     # account box below can never discard the user's selected skills.
     st.markdown("### 🎯 Your Target")
-    target_role = st.selectbox("Target role you want:", list(ROLE_REQUIREMENTS.keys()))
+    target_role = st.selectbox("Target role you want:", list(ROLE_REQUIREMENTS.keys()), key="role_sel")
     method = st.radio("How to provide your skills:",
                       ["📄 Upload Resume (PDF)", "📋 Paste Resume Text",
-                       "✅ Select Skills Manually"])
+                       "✅ Select Skills Manually"], key="skill_method")
 
     resume_text = ""
     base_skills = []
@@ -400,7 +439,11 @@ with st.sidebar:
         base_skills = st.multiselect("Select all skills you currently know:",
                                      MASTER_SKILLS, key="manual_skills")
 
+    if not base_skills and ss.get("_restored_skills"):
+        base_skills = ss["_restored_skills"]
     ss.student_skills = base_skills
+    if ss.get("_restored_skills") and ss.auth_user:
+        st.caption("↩️ Restored your saved profile — change any input to update it.")
     ss.resume_text = resume_text
     st.caption("Built by Darshan Dalvi · Final-year B.E. Project\n\n"
                "Python · NLP · Gemini · Streamlit · Plotly")

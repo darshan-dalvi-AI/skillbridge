@@ -162,6 +162,20 @@ def save_chat(session, role, sender, content):
         return False
 
 
+def get_profile(session):
+    """Return the saved profile {target_role, skills, resume_text} (API only)."""
+    if is_api(session):
+        try:
+            uid = session["user_id"]
+            d = _get(f"/profile/{uid}", session=session).json()
+            return {"target_role": d.get("target_role", ""),
+                    "skills": d.get("skills", []),
+                    "resume_text": d.get("resume_text", "")}
+        except Exception:
+            pass
+    return {"target_role": "", "skills": [], "resume_text": ""}
+
+
 # ----------------------------------------------------------------- progress (api or local)
 def get_progress(session, username=""):
     """Return progress in the legacy shape {learned, role, history} for the UI.
