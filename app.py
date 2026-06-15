@@ -271,6 +271,17 @@ def inject_theme():
 
 inject_theme()
 CHART_FONT = "#16202e" if ss.theme == "light" else "#e6eef8"
+
+def _theme_fig(fig):
+    """Force legible, theme-aware axis text + soft gridlines + auto-margins (no clipping)."""
+    grid = "rgba(148,163,184,0.16)" if ss.theme == "dark" else "rgba(15,23,42,0.12)"
+    fig.update_layout(font=dict(color=CHART_FONT),
+                      paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+    fig.update_xaxes(tickfont=dict(color=CHART_FONT), title_font=dict(color=CHART_FONT),
+                     gridcolor=grid, zerolinecolor=grid, linecolor=grid, automargin=True)
+    fig.update_yaxes(tickfont=dict(color=CHART_FONT), title_font=dict(color=CHART_FONT),
+                     gridcolor=grid, zerolinecolor=grid, linecolor=grid, automargin=True)
+    return fig
 # Hide Plotly's hover toolbar (zoom/pan/reset are no-ops on pie/radar and
 # unreliable on touch); charts stay clean and still show hover tooltips.
 _PLOTLY_CFG = {"displayModeBar": False}
@@ -493,7 +504,7 @@ with tabs[0]:
             fig.update_layout(height=210, margin=dict(t=10, b=10, l=10, r=10),
                               paper_bgcolor="rgba(0,0,0,0)", font_color=CHART_FONT,
                               showlegend=True, legend=dict(orientation="h", y=-0.1))
-            st.plotly_chart(fig, width="stretch", theme=None, config=_PLOTLY_CFG)
+            st.plotly_chart(_theme_fig(fig), width="stretch", theme=None, config=_PLOTLY_CFG)
         with c3:
             sal = ROLE_SALARY_IN.get(target_role)
             if sal:
@@ -522,7 +533,7 @@ with tabs[0]:
             fig2.update_layout(height=260, margin=dict(t=10, b=10, l=10, r=10),
                                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                                font_color=CHART_FONT, yaxis_title="Demand score")
-            st.plotly_chart(fig2, width="stretch", theme=None, config=_PLOTLY_CFG)
+            st.plotly_chart(_theme_fig(fig2), width="stretch", theme=None, config=_PLOTLY_CFG)
             hot = [s for s, _, hi in ranked if hi]
             if hot:
                 st.markdown("**Most in-demand of your gaps:** " +
@@ -541,7 +552,7 @@ with tabs[0]:
         figp.update_layout(height=160, margin=dict(t=6, b=6, l=10, r=10),
                            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                            font_color=CHART_FONT, xaxis_title="Match %", xaxis_range=[0, 100])
-        st.plotly_chart(figp, width="stretch", theme=None, config=_PLOTLY_CFG)
+        st.plotly_chart(_theme_fig(figp), width="stretch", theme=None, config=_PLOTLY_CFG)
         st.caption("⚠️ Indicative benchmark (our rubric), not real candidate data.")
 
         # Skill radar (coverage by category)
@@ -560,7 +571,7 @@ with tabs[0]:
                                           radialaxis=dict(range=[0, 100],
                                               tickfont=dict(color=CHART_FONT)),
                                           angularaxis=dict(tickfont=dict(color=CHART_FONT))))
-            st.plotly_chart(figr, width="stretch", theme=None, config=_PLOTLY_CFG)
+            st.plotly_chart(_theme_fig(figr), width="stretch", theme=None, config=_PLOTLY_CFG)
         else:
             st.caption("Add a few more skills to unlock the category radar.")
 
@@ -637,7 +648,7 @@ with tabs[1]:
                            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                            font_color=CHART_FONT,
                            yaxis_title=("mentions in real jobs" if suffix == " jobs" else "demand"))
-        st.plotly_chart(figL, width="stretch", theme=None, config=_PLOTLY_CFG)
+        st.plotly_chart(_theme_fig(figL), width="stretch", theme=None, config=_PLOTLY_CFG)
         st.caption("🟢 you have it · 🔴 you're missing it · bar height = real demand")
 
         st.markdown('<div class="sec-label">🔥 Most-wanted skills you\'re missing '
@@ -794,7 +805,7 @@ with tabs[3]:
                                        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                                        font_color=CHART_FONT, yaxis_title="Match %",
                                        yaxis_range=[0, 100], xaxis_title="saved snapshots")
-                    st.plotly_chart(figh, width="stretch", theme=None, config=_PLOTLY_CFG)
+                    st.plotly_chart(_theme_fig(figh), width="stretch", theme=None, config=_PLOTLY_CFG)
                     st.caption(f"{len(hist)} saved snapshots — your readiness over time.")
                 with st.expander("☁️ Your saved data (backend)"):
                     data = api_client.export_all(ss.session)
@@ -842,7 +853,7 @@ with tabs[4]:
         figc.update_layout(height=300, margin=dict(t=20, b=10, l=10, r=10),
                            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                            font_color=CHART_FONT, yaxis_title="Match %", yaxis_range=[0, 100])
-        st.plotly_chart(figc, width="stretch", theme=None, config=_PLOTLY_CFG)
+        st.plotly_chart(_theme_fig(figc), width="stretch", theme=None, config=_PLOTLY_CFG)
 
         better = roleA if rA["match_percent"] >= rB["match_percent"] else roleB
         st.success(f"You're currently a stronger fit for **{better}**.")
