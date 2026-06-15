@@ -385,6 +385,9 @@ def _restore_profile_once():
             ss.setdefault("role_sel", prof["target_role"])
         if prof.get("resume_text"):
             ss.resume_text = prof["resume_text"]
+            ss.setdefault("resumes", [])
+            if not ss.resumes:
+                ss.resumes = [{"name": "Saved résumé", "text": prof["resume_text"]}]
         ss.learned = getattr(api_client, "get_progress", lambda *a, **k: {})(ss.session, ss.auth_user).get("learned", [])
         ss["_restored"] = True
 
@@ -398,8 +401,11 @@ with st.sidebar:
 
     # ---- data actions run BEFORE the inputs so widget keys reset safely ----
     if ss.pop("_do_clear_resume", False):
-        for _k in ("pdf_reader_main", "resume_paste", "main_resume"):
-            ss.pop(_k, None)
+        ss.pop("resume_paste", None)
+        ss.pop("main_resume", None)
+        ss.resumes = []
+        ss._last_pdf_n = None
+        ss._pdf_key = ss.get("_pdf_key", 0) + 1     # fresh picker instance
         ss.resume_text = ""
         if ss.auth_user and api_client.is_api(ss.session):
             try:
@@ -407,7 +413,7 @@ with st.sidebar:
                                         ss.get("student_skills", []), "")
             except Exception:
                 pass
-        st.toast("🗑️ Résumé removed — upload or paste a new one anytime.")
+        st.toast("🗑️ Résumés removed — add a new one anytime.")
     if ss.pop("_do_clear_all", False):
         if ss.auth_user and api_client.is_api(ss.session):
             try:
@@ -415,15 +421,19 @@ with st.sidebar:
                 api_client.save_progress(ss.session, ss.auth_user, "", 0, [])
             except Exception:
                 pass
-        for _k in ("pdf_reader_main", "resume_paste", "main_resume", "manual_skills",
-                   "skill_method", "role_sel", "_restored_skills", "student_skills",
-                   "_last_saved_sig", "_restored", "confirm_clear_all"):
+        for _k in ("resume_paste", "main_resume", "manual_skills", "skill_method",
+                   "role_sel", "_restored_skills", "student_skills",
+                   "_last_saved_sig", "confirm_clear_all"):
             ss.pop(_k, None)
         for _k in ("roadmap_text", "projects_text", "interview_text", "market_text"):
             ss[_k] = ""
+        ss.resumes = []
+        ss._last_pdf_n = None
+        ss._pdf_key = ss.get("_pdf_key", 0) + 1
         ss.resume_text = ""
         ss.chat = []
         ss.learned = []
+        ss["_restored"] = True            # keep restore OFF so an in-session rerun can't re-load wiped data
         st.toast("🧹 Cleared everything — fresh start.")
 
     # Skills & role are instantiated FIRST so the login/logout reruns in the
@@ -437,26 +447,46 @@ with st.sidebar:
     resume_text = ""
     base_skills = []
     if method == "📄 Upload Resume (PDF)":
-        pdf_text = ""
+        ss.setdefault("resumes", [])
+        ss.setdefault("_last_pdf_n", None)
+        ss.setdefault("_pdf_key", 0)
         if _pdf_reader is not None:
             st.caption("Pick your PDF below — it is read **on your device** "
-                       "(nothing is uploaded), so it works on phones too.")
-            pdf_text = _pdf_reader(key="pdf_reader_main", default="", theme=ss.theme) or ""
-            if not (pdf_text and pdf_text.strip()):
-                with st.expander("Trouble picking a file? Use the classic uploader"):
-                    _up = st.file_uploader("Upload your resume", type=["pdf"], key="main_resume")
-                    if _up:
-                        _t = extract_text_from_pdf(_up)
-                        pdf_text = "" if _t.startswith("__ERROR__") else _t
+                       "(nothing is uploaded), so it works on phones too. "
+                       "You can add more than one.")
+            raw = _pdf_reader(key=f"pdf_reader_{ss._pdf_key}", default=None, theme=ss.theme)
+            cur_n = raw.get("n") if isinstance(raw, dict) else None
+            if isinstance(raw, dict) and (raw.get("text") or "").strip() and cur_n != ss._last_pdf_n:
+                ss._last_pdf_n = cur_n
+                _nm = (raw.get("name") or "Résumé").strip()
+                _txt = raw["text"].strip()
+                if not any(r["text"] == _txt for r in ss.resumes):
+                    ss.resumes.append({"name": _nm, "text": _txt})
+            with st.expander("Trouble picking a file? Use the classic uploader"):
+                _up = st.file_uploader("Upload your resume", type=["pdf"], key="main_resume")
+                if _up:
+                    _t = extract_text_from_pdf(_up)
+                    if (not _t.startswith("__ERROR__")) and _t.strip() and \
+                            not any(r["text"] == _t.strip() for r in ss.resumes):
+                        ss.resumes.append({"name": _up.name, "text": _t.strip()})
         else:
             _up = st.file_uploader("Upload your resume", type=["pdf"], key="main_resume")
             if _up:
                 _t = extract_text_from_pdf(_up)
-                pdf_text = "" if _t.startswith("__ERROR__") else _t
-        if pdf_text and pdf_text.strip():
-            resume_text = pdf_text
+                if (not _t.startswith("__ERROR__")) and _t.strip() and \
+                        not any(r["text"] == _t.strip() for r in ss.resumes):
+                    ss.resumes.append({"name": _up.name, "text": _t.strip()})
+        if ss.resumes:
+            st.markdown("**Your résumés** — tap 🗑️ to remove just that one:")
+            for _i, _r in enumerate(list(ss.resumes)):
+                _c1, _c2 = st.columns([0.8, 0.2])
+                _c1.markdown(f"📄 {_r['name']}")
+                if _c2.button("🗑️", key=f"del_resume_{_i}", help=f"Remove {_r['name']}"):
+                    ss.resumes.pop(_i)
+                    st.rerun()
+            resume_text = "\n\n".join(r["text"] for r in ss.resumes)
             base_skills = extract_skills(resume_text)
-            st.success(f"Found {len(base_skills)} skills in your resume.")
+            st.success(f"Found {len(base_skills)} skills across {len(ss.resumes)} résumé(s).")
     elif method == "📋 Paste Resume Text":
         resume_text = st.text_area(
             "Paste your resume text here:", height=200, key="resume_paste",
@@ -481,13 +511,14 @@ with st.sidebar:
         ss.resume_text = resume_text
 
     with st.expander("⚙️ Manage my data"):
-        if (ss.get("resume_text") or "").strip():
-            st.caption(f"📄 Résumé on file — {len(ss.resume_text):,} characters loaded.")
-            if st.button("🗑️ Remove résumé", use_container_width=True, key="rm_resume_btn"):
+        _nres = len(ss.get("resumes", []))
+        if _nres or (ss.get("resume_text") or "").strip():
+            _lbl = (f"{_nres} résumé(s)" if _nres else "résumé text")
+            st.caption(f"📄 {_lbl} on file.")
+            if st.button("🗑️ Remove all résumés", use_container_width=True, key="rm_resume_btn"):
                 ss["_do_clear_resume"] = True
                 st.rerun()
-            st.caption("To **update** it, just upload or paste a new résumé above — "
-                       "the new one replaces the old.")
+            st.caption("Or delete them one-by-one with the 🗑️ next to each résumé above.")
         else:
             st.caption("No résumé on file yet — upload or paste one above.")
         st.markdown("<hr style='margin:8px 0;border:0;border-top:1px solid "
