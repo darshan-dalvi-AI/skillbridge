@@ -145,11 +145,19 @@ h1,h2,h3,h4,h5,h6{ font-family:'Space Grotesk','DM Sans',sans-serif; letter-spac
 .stTabs [data-baseweb="tab"], .stTabs [data-baseweb="tab"] p { color:var(--sub); font-weight:600; }
 .stTabs [data-baseweb="tab"][aria-selected="true"], .stTabs [data-baseweb="tab"][aria-selected="true"] p { color:var(--text); }
 .stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"]{ background:linear-gradient(90deg,#22c55e,#22d3ee) !important; }
-/* GLOWING BOX on the active tab so you always know which feature is open */
-.stTabs [data-baseweb="tab"]{ border-radius:10px; transition:background .2s, box-shadow .2s, color .2s; }
-.stTabs [data-baseweb="tab"]:hover{ background:rgba(148,163,184,0.10); }
-.stTabs [data-baseweb="tab"][aria-selected="true"]{ background:rgba(34,197,94,0.15) !important;
-  box-shadow:inset 0 0 0 1.4px rgba(34,197,94,0.6), 0 0 18px rgba(34,197,94,0.35) !important; }
+/* GLOWING BOX on the active tab — bigger & cooler so you always know which feature is open */
+.stTabs [data-baseweb="tab-list"]{ gap:7px; }
+.stTabs [data-baseweb="tab"]{ border-radius:14px; padding:10px 20px !important;
+  transition:background .25s, box-shadow .25s, color .25s, transform .25s; }
+.stTabs [data-baseweb="tab"]:hover{ background:rgba(148,163,184,0.12); }
+.stTabs [data-baseweb="tab"][aria-selected="true"]{
+  background:linear-gradient(135deg, rgba(34,197,94,0.26), rgba(34,211,238,0.14)) !important;
+  transform:translateY(-1px); animation:tabGlow 2.4s ease-in-out infinite; }
+@keyframes tabGlow{
+  0%,100%{ box-shadow:inset 0 0 0 1.7px rgba(34,197,94,0.62), 0 0 24px rgba(34,197,94,0.42), 0 0 50px rgba(34,197,94,0.20); }
+  50%{ box-shadow:inset 0 0 0 1.7px rgba(34,197,94,0.9), 0 0 38px rgba(34,197,94,0.65), 0 0 72px rgba(34,197,94,0.32); } }
+@media(prefers-reduced-motion:reduce){ .stTabs [data-baseweb="tab"][aria-selected="true"]{ animation:none;
+  box-shadow:inset 0 0 0 1.7px rgba(34,197,94,0.7), 0 0 30px rgba(34,197,94,0.5) !important; } }
 .stTabs [data-baseweb="tab"][aria-selected="true"] p,
 .stTabs [data-baseweb="tab"][aria-selected="true"]{ color:var(--have-fg) !important; font-weight:700 !important; }
 /* native text widgets follow the theme text colour */
