@@ -14,15 +14,21 @@
     width:100%; padding:15px 12px;
     background:#0d1b2a; color:#e6eef8; border:1.6px dashed #2b6f86;
     border-radius:12px; font-size:15px; font-weight:600; cursor:pointer;
-    text-align:center; transition:border-color .15s, background .15s; user-select:none;
+    text-align:center; transition:border-color .15s, background .15s, color .15s; user-select:none;
   }
-  .btn:hover{ border-color:#00d3ea; background:#10233a; }
+  .btn:hover{ border-color:#22c55e; background:#10233a; }
   .btn:active{ transform:translateY(1px); }
   .status{ font-size:12.5px; color:#9fb3c8; line-height:1.4; }
   .status:empty{ display:none; }
   .status.show{ margin-top:7px; }
-  .ok{ color:#00d39a; } .err{ color:#ff6b85; }
+  .ok{ color:#22c55e; } .err{ color:#fb7185; }
   input[type=file]{ position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+  /* LIGHT MODE (driven by the theme arg Streamlit passes in) */
+  body[data-theme="light"] .btn{ background:#ffffff; color:#0f172a; border-color:#94a3b8; }
+  body[data-theme="light"] .btn:hover{ background:#f1f5f9; border-color:#16a34a; }
+  body[data-theme="light"] .status{ color:#475569; }
+  body[data-theme="light"] .ok{ color:#15803d; }
+  body[data-theme="light"] .err{ color:#be123c; }
 </style>
 </head>
 <body>
@@ -40,61 +46,42 @@
   function post(m){ window.parent.postMessage(Object.assign({isStreamlitMessage:true}, m), "*"); }
   function ready(){ post({type:"streamlit:componentReady", apiVersion:1}); }
   function setVal(v){ post({type:"streamlit:setComponentValue", value:v, dataType:"json"}); }
-
   var wrap=document.querySelector(".wrap");
-  // Measure CONTENT height (not documentElement.scrollHeight, which is bounded
-  // below by the iframe's own height and gets stuck tall, leaving empty space).
-  function setH(){
-    var h=Math.ceil(wrap.getBoundingClientRect().height)+4;
-    post({type:"streamlit:setFrameHeight", height:h});
-  }
-  function setStatus(txt, cls){
-    stt.textContent=txt||"";
-    stt.className="status"+(txt?(" show"+(cls?(" "+cls):"")):"");
-    setH();
-  }
+  function setH(){ post({type:"streamlit:setFrameHeight", height:Math.ceil(wrap.getBoundingClientRect().height)+4}); }
+  function setStatus(txt, cls){ stt.textContent=txt||""; stt.className="status"+(txt?(" show"+(cls?(" "+cls):"")):""); setH(); }
 
   var fileEl=document.getElementById("file");
   var ic=document.getElementById("ic"), tx=document.getElementById("tx"), stt=document.getElementById("st");
 
-  window.addEventListener("message", function(e){ if(e.data && e.data.type==="streamlit:render"){ setH(); } });
+  // read theme from Streamlit's render args -> adapt the card to light/dark
+  window.addEventListener("message", function(e){
+    if(e.data && e.data.type==="streamlit:render"){
+      var th=(e.data.args && e.data.args.theme) || "dark";
+      document.body.setAttribute("data-theme", th);
+      setH();
+    }
+  });
   if(window.ResizeObserver){ new ResizeObserver(setH).observe(wrap); }
 
   var ok=(typeof pdfjsLib!=="undefined");
-  if(ok){
-    pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-  } else {
-    setStatus("Couldn't load the PDF reader here. Use “Paste Resume Text” instead.","err");
-  }
+  if(ok){ pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; }
+  else { setStatus("Couldn't load the PDF reader here. Use “Paste Resume Text” instead.","err"); }
 
   fileEl.addEventListener("change", async function(ev){
-    var f=ev.target.files && ev.target.files[0];
-    if(!f) return;
-    ic.textContent="⏳"; tx.textContent="Reading "+f.name+" …";
-    setStatus("Working entirely on your device…");
+    var f=ev.target.files && ev.target.files[0]; if(!f) return;
+    ic.textContent="⏳"; tx.textContent="Reading "+f.name+" …"; setStatus("Working entirely on your device…");
     try{
       if(!ok) throw new Error("reader not loaded");
       var buf=await f.arrayBuffer();
       var pdf=await pdfjsLib.getDocument({data:buf}).promise;
       var text="";
-      for(var i=1;i<=pdf.numPages;i++){
-        var page=await pdf.getPage(i);
-        var c=await page.getTextContent();
-        text += c.items.map(function(it){ return it.str; }).join(" ")+"\n";
-      }
+      for(var i=1;i<=pdf.numPages;i++){ var page=await pdf.getPage(i); var c=await page.getTextContent(); text+=c.items.map(function(it){return it.str}).join(" ")+"\n"; }
       text=text.trim();
-      if(text.length<10){
-        ic.textContent="📄"; tx.textContent="Choose your resume PDF";
-        setStatus("This PDF has little selectable text (maybe a scan/image). Try “Paste Resume Text”.","err");
-        return;
-      }
+      if(text.length<10){ ic.textContent="📄"; tx.textContent="Choose your resume PDF"; setStatus("This PDF has little selectable text (maybe a scan/image). Try “Paste Resume Text”.","err"); return; }
       setVal(text);
       ic.textContent="✅"; tx.textContent=f.name+" — read";
       setStatus("Extracted "+text.length+" characters on your device (no upload). Analyzing…","ok");
-    }catch(err){
-      ic.textContent="📄"; tx.textContent="Choose your resume PDF";
-      setStatus("Couldn’t read this PDF ("+((err&&err.message)||"error")+"). Try “Paste Resume Text”.","err");
-    }
+    }catch(err){ ic.textContent="📄"; tx.textContent="Choose your resume PDF"; setStatus("Couldn’t read this PDF ("+((err&&err.message)||"error")+"). Try “Paste Resume Text”.","err"); }
   });
 
   ready(); setH();

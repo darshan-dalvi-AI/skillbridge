@@ -128,6 +128,10 @@ h1,h2,h3,h4,h5,h6{ font-family:'Space Grotesk','DM Sans',sans-serif; letter-spac
 [data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] p{ color:var(--sub) !important; }
 [data-testid="stMarkdownContainer"] h1, [data-testid="stMarkdownContainer"] h2,
 [data-testid="stMarkdownContainer"] h3, [data-testid="stMarkdownContainer"] h4{ color:var(--text) !important; }
+[data-testid="stMarkdownContainer"] p, [data-testid="stMarkdownContainer"] li,
+[data-testid="stMarkdownContainer"] strong, [data-testid="stMarkdownContainer"] b,
+[data-testid="stMarkdownContainer"] em, [data-testid="stMarkdownContainer"] td,
+[data-testid="stMarkdownContainer"] th{ color:var(--text) !important; }
 .sec-label{ font-family:'Space Grotesk'; font-weight:600; color:var(--text); font-size:1.0rem;
   margin:14px 0 8px; letter-spacing:-0.01em;}
 .stButton>button{ background:linear-gradient(135deg,#22c55e,#16a34a);
@@ -323,7 +327,7 @@ with st.sidebar:
         if _pdf_reader is not None:
             st.caption("Pick your PDF below — it is read **on your device** "
                        "(nothing is uploaded), so it works on phones too.")
-            pdf_text = _pdf_reader(key="pdf_reader_main", default="") or ""
+            pdf_text = _pdf_reader(key="pdf_reader_main", default="", theme=ss.theme) or ""
             if not (pdf_text and pdf_text.strip()):
                 with st.expander("Trouble picking a file? Use the classic uploader"):
                     _up = st.file_uploader("Upload your resume", type=["pdf"], key="main_resume")
