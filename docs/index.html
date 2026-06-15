@@ -139,6 +139,7 @@ section.block{padding:30px 0}
 .check.no span{color:var(--muted)}
 .tip{font-size:13px;color:var(--muted);padding-left:28px;margin-top:-3px}
 .hidden{display:none!important}
+#analyze,#roadmap,#jd{scroll-margin-top:88px}
 
 /* reveal */
 .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.2,1)}
@@ -229,7 +230,7 @@ footer{border-top:1px solid var(--border);margin-top:40px;padding:34px 0 50px}
       <div class="brand" style="font-size:16px;margin-bottom:8px"><span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 17l6-6 4 4 6-7"/></svg></span>SkillBridge</div>
       <p class="muted small">Final-year B.E. project by Darshan Dalvi · the analysis runs entirely in your browser.</p>
       <div class="techs" style="margin-top:12px">
-        <span class="tech">JavaScript</span><span class="tech">NLP skill-matching</span><span class="tech">pdf.js</span><span class="tech">SVG charts</span><span class="tech">Zero-backend</span>
+        <span class="tech">JavaScript</span><span class="tech">NLP skill-matching</span><span class="tech">pdf.js</span><span class="tech">SVG charts</span><span class="tech">Runs in your browser</span>
       </div>
     </div>
     <a class="btn btn-primary" href="https://skillbridge-darshan.streamlit.app" target="_blank" rel="noopener">Open the full live app ↗</a>
@@ -456,7 +457,7 @@ if(typeof module!=="undefined")module.exports={makeSB:makeSB};
     if(cats.length>=3){html+='<div class="card col5"><h3>'+ICON.radar+'Coverage by area</h3><div class="cap">How complete you are across the role’s skill groups.</div>'+radarSVG(cats)+'</div>'}
 
     // roadmap
-    html+='<div class="card col12"><h3>'+ICON.map+'Your personalized roadmap</h3>'+
+    html+='<div class="card col12" id="roadmap"><h3>'+ICON.map+'Your personalized roadmap</h3>'+
       '<div class="cap">Ordered by learning effort. At ~'+tl.hours_per_week+' hrs/week, you’re about <b style="color:#bbf7d0">'+tl.weeks+' weeks ('+tl.months+' months)</b> away · ~'+tl.total_hours+' hrs total.</div>';
     if(tl.per_skill.length){html+='<div class="list-clean">';
       tl.per_skill.forEach(function(p,i){var dem=(DATA.SKILL_DEMAND[p[0]]!==undefined?DATA.SKILL_DEMAND[p[0]]:DATA.DEFAULT_SKILL_DEMAND);
@@ -478,7 +479,7 @@ if(typeof module!=="undefined")module.exports={makeSB:makeSB};
         '</div></div></div></div>'}
 
     // JD match
-    html+='<div class="card '+(ats?'col6':'col12')+'"><h3>'+ICON.brief+'Match a specific job</h3><div class="cap">Paste a job description — see how your skills line up with what it asks for.</div>'+
+    html+='<div id="jd" class="card '+(ats?'col6':'col12')+'"><h3>'+ICON.brief+'Match a specific job</h3><div class="cap">Paste a job description — see how your skills line up with what it asks for.</div>'+
       '<textarea id="jd" class="field" placeholder="Paste the job description here…"></textarea>'+
       '<button class="btn btn-ghost" id="jdgo" style="margin-top:12px">Match this job</button><div id="jdout" style="margin-top:14px"></div></div>';
 
@@ -513,6 +514,18 @@ if(typeof module!=="undefined")module.exports={makeSB:makeSB};
   revealObserve();
 })();
 
+</script>
+<script>
+(function(){
+  document.querySelectorAll(".nav-links a[href^=\"#\"]").forEach(function(a){
+    a.addEventListener("click", function(e){
+      var id=a.getAttribute("href").slice(1), el=document.getElementById(id);
+      e.preventDefault();
+      if(el){ el.scrollIntoView({behavior:"smooth",block:"start"}); }
+      else { var pnl=document.getElementById("analyze"); if(pnl) pnl.scrollIntoView({behavior:"smooth",block:"center"}); if(window.toast) window.toast("Run your analysis first \u2014 \u201c"+a.textContent.trim()+"\u201d appears in your results."); }
+    });
+  });
+})();
 </script>
 </body>
 </html>
