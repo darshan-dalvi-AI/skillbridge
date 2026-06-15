@@ -62,6 +62,7 @@ ss.setdefault("market_text", "")
 ss.setdefault("chat", [])
 ss.setdefault("interview_text", "")
 ss.setdefault("session", None)
+ss.setdefault("resume_text", "")
 ss.theme = "light" if ss.get("theme_toggle", False) else "dark"
 
 # ---------------------------------------------------------------- THEME / CSS
@@ -395,6 +396,36 @@ _restore_profile_once()
 with st.sidebar:
     top_box = st.container()  # account + theme show here (visually first)
 
+    # ---- data actions run BEFORE the inputs so widget keys reset safely ----
+    if ss.pop("_do_clear_resume", False):
+        for _k in ("pdf_reader_main", "resume_paste", "main_resume"):
+            ss.pop(_k, None)
+        ss.resume_text = ""
+        if ss.auth_user and api_client.is_api(ss.session):
+            try:
+                api_client.save_profile(ss.session, ss.get("role_sel", ""),
+                                        ss.get("student_skills", []), "")
+            except Exception:
+                pass
+        st.toast("🗑️ Résumé removed — upload or paste a new one anytime.")
+    if ss.pop("_do_clear_all", False):
+        if ss.auth_user and api_client.is_api(ss.session):
+            try:
+                api_client.save_profile(ss.session, "", [], "")
+                api_client.save_progress(ss.session, ss.auth_user, "", 0, [])
+            except Exception:
+                pass
+        for _k in ("pdf_reader_main", "resume_paste", "main_resume", "manual_skills",
+                   "skill_method", "role_sel", "_restored_skills", "student_skills",
+                   "_last_saved_sig", "_restored", "confirm_clear_all"):
+            ss.pop(_k, None)
+        for _k in ("roadmap_text", "projects_text", "interview_text", "market_text"):
+            ss[_k] = ""
+        ss.resume_text = ""
+        ss.chat = []
+        ss.learned = []
+        st.toast("🧹 Cleared everything — fresh start.")
+
     # Skills & role are instantiated FIRST so the login/logout reruns in the
     # account box below can never discard the user's selected skills.
     st.markdown("### 🎯 Your Target")
@@ -444,7 +475,30 @@ with st.sidebar:
     ss.student_skills = base_skills
     if ss.get("_restored_skills") and ss.auth_user:
         st.caption("↩️ Restored your saved profile — change any input to update it.")
-    ss.resume_text = resume_text
+    # keep the last real résumé so it survives method-switches & refresh;
+    # the "Remove résumé" button is the only way to clear it
+    if (resume_text or "").strip():
+        ss.resume_text = resume_text
+
+    with st.expander("⚙️ Manage my data"):
+        if (ss.get("resume_text") or "").strip():
+            st.caption(f"📄 Résumé on file — {len(ss.resume_text):,} characters loaded.")
+            if st.button("🗑️ Remove résumé", use_container_width=True, key="rm_resume_btn"):
+                ss["_do_clear_resume"] = True
+                st.rerun()
+            st.caption("To **update** it, just upload or paste a new résumé above — "
+                       "the new one replaces the old.")
+        else:
+            st.caption("No résumé on file yet — upload or paste one above.")
+        st.markdown("<hr style='margin:8px 0;border:0;border-top:1px solid "
+                    "rgba(148,163,184,.25)'>", unsafe_allow_html=True)
+        _sure = st.checkbox("Yes, wipe everything", key="confirm_clear_all")
+        if st.button("🧹 Clear all my data & chat", use_container_width=True,
+                     disabled=not _sure, key="clear_all_btn"):
+            ss["_do_clear_all"] = True
+            st.rerun()
+        st.caption("Clears your skills, résumé, analysis, AI-mentor chat and your "
+                   "saved profile — a clean start.")
     st.caption("Built by Darshan Dalvi · Final-year B.E. Project\n\n"
                "Python · NLP · Gemini · Streamlit · Plotly")
 
