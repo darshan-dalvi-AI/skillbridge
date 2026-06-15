@@ -18,6 +18,7 @@ import streamlit as st
 import plotly.graph_objects as go
 from google import genai
 import os
+import hashlib
 import streamlit.components.v1 as components
 
 from roles_data import (
@@ -316,6 +317,23 @@ def pills(skills, cls):
     return " ".join(f'<span class="pill {cls}">{s}</span>' for s in skills)
 
 
+def _login_form():
+    """Email / password sign-in (backend, with local fallback)."""
+    _mode = st.radio("Account", ["Log in", "Register"], horizontal=True,
+                     label_visibility="collapsed", key="auth_mode")
+    _u = st.text_input("Username", key="auth_u")
+    _p = st.text_input("Password", type="password", key="auth_p")
+    if st.button(_mode, key="auth_submit"):
+        ok, msg, sess = (api_client.register(_u, _p) if _mode == "Register"
+                         else api_client.authenticate(_u, _p))
+        if ok:
+            ss.auth_user = sess["username"]; ss.session = sess
+            ss.learned = api_client.get_progress(sess, ss.auth_user).get("learned", [])
+            st.rerun()
+        else:
+            st.error(msg)
+
+
 @st.cache_data(ttl=1800, show_spinner="Pulling live job-market data…")
 def cached_live_skills(role):
     """Cache live job-market fetch per role (30 min) so Adzuna isn't hit on
@@ -378,34 +396,52 @@ with st.sidebar:
 
     with top_box:
         st.markdown("### 👤 Account")
-        if ss.auth_user:
+        try:
+            _auth_on = "auth" in st.secrets
+        except Exception:
+            _auth_on = False
+        _gu = getattr(st, "user", None)
+        _g_in = bool(_auth_on and _gu is not None and getattr(_gu, "is_logged_in", False))
+
+        if _g_in:
+            if not ss.auth_user:
+                _em = (getattr(st.user, "email", "") or "").strip().lower()
+                _pw = hashlib.sha256(("skbridge-oauth::" + _em).encode()).hexdigest()[:24]
+                ok, _m, sess = api_client.authenticate(_em, _pw)
+                if not ok:
+                    ok, _m, sess = api_client.register(_em, _pw)
+                if ok:
+                    ss.auth_user = sess["username"]; ss.session = sess
+                    ss.learned = api_client.get_progress(sess, ss.auth_user).get("learned", [])
+            _pic = getattr(st.user, "picture", None)
+            if _pic:
+                st.markdown(f'<img src="{_pic}" style="width:48px;height:48px;'
+                            'border-radius:50%;border:2px solid #22c55e;margin-bottom:6px">',
+                            unsafe_allow_html=True)
+            st.success(f"Signed in as **{getattr(st.user, 'name', None) or ss.auth_user}**")
+            _store = "☁️ Backend" if api_client.is_api(ss.session) else "💾 Local"
+            st.caption(f"Saving to: {_store} · {getattr(st.user, 'email', '')}")
+            if st.button("Sign out"):
+                ss.auth_user = None; ss.session = None; ss.learned = []; ss.chat = []
+                ss.pop("_last_saved_sig", None); st.logout()
+        elif ss.auth_user:
             st.success(f"Logged in as **{ss.auth_user}**")
             _store = "☁️ Backend" if api_client.is_api(ss.session) else "💾 Local (backend offline)"
             st.caption(f"Saving to: {_store}")
             if st.button("Log out"):
-                ss.auth_user = None
-                ss.session = None
-                ss.learned = []
-                ss.chat = []
-                ss.pop("_last_saved_sig", None)
-                st.rerun()
+                ss.auth_user = None; ss.session = None; ss.learned = []; ss.chat = []
+                ss.pop("_last_saved_sig", None); st.rerun()
         else:
-            mode = st.radio("Account", ["Log in", "Register"], horizontal=True,
-                            label_visibility="collapsed")
-            u = st.text_input("Username", key="auth_u")
-            p = st.text_input("Password", type="password", key="auth_p")
-            if st.button(mode):
-                ok, msg, sess = (api_client.register(u, p) if mode == "Register"
-                                 else api_client.authenticate(u, p))
-                if ok:
-                    ss.auth_user = sess["username"]
-                    ss.session = sess
-                    ss.learned = api_client.get_progress(sess, ss.auth_user).get("learned", [])
-                    st.rerun()
-                else:
-                    st.error(msg)
-            st.caption("Login saves your data to the SkillBridge backend "
-                       "(falls back to local storage if it isn't running).")
+            if _auth_on:
+                if st.button("Sign in with Google", use_container_width=True):
+                    st.login()
+                st.caption("Sign in to save your roadmap & progress across devices.")
+                with st.expander("or use email / password"):
+                    _login_form()
+            else:
+                _login_form()
+                st.caption("Login saves your data to the SkillBridge backend "
+                           "(falls back to local storage if it isn't running).")
         st.markdown("---")
         _theme_label = "☀️ Light mode" if ss.theme == "light" else "🌙 Dark mode"
         st.toggle(_theme_label, key="theme_toggle")
