@@ -374,7 +374,7 @@ def _restore_profile_once():
             if ok:
                 ss.auth_user = sess["username"]; ss.session = sess
     if ss.auth_user and api_client.is_api(ss.session):
-        prof = api_client.get_profile(ss.session)
+        prof = getattr(api_client, "get_profile", lambda *a, **k: {})(ss.session) or {}
         _sk = [s for s in (prof.get("skills") or []) if s in MASTER_SKILLS]
         if _sk:
             ss.setdefault("manual_skills", _sk)
@@ -384,7 +384,7 @@ def _restore_profile_once():
             ss.setdefault("role_sel", prof["target_role"])
         if prof.get("resume_text"):
             ss.resume_text = prof["resume_text"]
-        ss.learned = api_client.get_progress(ss.session, ss.auth_user).get("learned", [])
+        ss.learned = getattr(api_client, "get_progress", lambda *a, **k: {})(ss.session, ss.auth_user).get("learned", [])
         ss["_restored"] = True
 
 
