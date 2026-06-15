@@ -145,6 +145,13 @@ h1,h2,h3,h4,h5,h6{ font-family:'Space Grotesk','DM Sans',sans-serif; letter-spac
 .stTabs [data-baseweb="tab"], .stTabs [data-baseweb="tab"] p { color:var(--sub); font-weight:600; }
 .stTabs [data-baseweb="tab"][aria-selected="true"], .stTabs [data-baseweb="tab"][aria-selected="true"] p { color:var(--text); }
 .stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"]{ background:linear-gradient(90deg,#22c55e,#22d3ee) !important; }
+/* GLOWING BOX on the active tab so you always know which feature is open */
+.stTabs [data-baseweb="tab"]{ border-radius:10px; transition:background .2s, box-shadow .2s, color .2s; }
+.stTabs [data-baseweb="tab"]:hover{ background:rgba(148,163,184,0.10); }
+.stTabs [data-baseweb="tab"][aria-selected="true"]{ background:rgba(34,197,94,0.15) !important;
+  box-shadow:inset 0 0 0 1.4px rgba(34,197,94,0.6), 0 0 18px rgba(34,197,94,0.35) !important; }
+.stTabs [data-baseweb="tab"][aria-selected="true"] p,
+.stTabs [data-baseweb="tab"][aria-selected="true"]{ color:var(--have-fg) !important; font-weight:700 !important; }
 /* native text widgets follow the theme text colour */
 [data-testid="stMetricValue"], [data-testid="stMetricLabel"], [data-testid="stMetricLabel"] p { color:var(--text) !important; }
 [data-testid="stCheckbox"] label, [data-testid="stCheckbox"] label p { color:var(--text) !important; }
