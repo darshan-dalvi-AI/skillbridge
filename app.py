@@ -17,6 +17,8 @@ import datetime
 import streamlit as st
 import plotly.graph_objects as go
 from google import genai
+import os
+import streamlit.components.v1 as components
 
 from roles_data import (
     ROLE_REQUIREMENTS, MASTER_SKILLS, ROLE_SALARY_IN,
@@ -34,6 +36,16 @@ from share_card import build_share_card
 from report import build_report_pdf
 import auth
 import api_client
+
+# ---------------------------------------------------------------- IN-BROWSER PDF READER
+# A tiny static component that reads the chosen PDF *on the user's device* with pdf.js and
+# returns the extracted text over the component channel (websocket) — bypassing Streamlit's
+# file-upload endpoint, which fails on mobile (AxiosError: Network Error). No file is uploaded.
+_PDF_READER_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pdf_reader")
+try:
+    _pdf_reader = components.declare_component("skillbridge_pdf_reader", path=_PDF_READER_DIR)
+except Exception:
+    _pdf_reader = None
 
 # ---------------------------------------------------------------- PAGE CONFIG
 st.set_page_config(page_title="SkillBridge — AI Career Analyzer",
@@ -293,17 +305,26 @@ with st.sidebar:
     resume_text = ""
     base_skills = []
     if method == "📄 Upload Resume (PDF)":
-        pdf = st.file_uploader("Upload your resume", type=["pdf"], key="main_resume")
-        if pdf:
-            resume_text = extract_text_from_pdf(pdf)
-            if resume_text.startswith("__ERROR__"):
-                st.error("Couldn't read PDF: " + resume_text.replace("__ERROR__", ""))
-                resume_text = ""
-            else:
-                base_skills = extract_skills(resume_text)
-                st.success(f"Found {len(base_skills)} skills in your resume.")
-        st.caption("📱 On a phone and the upload fails? Switch to "
-                   "“📋 Paste Resume Text” — no file upload needed.")
+        pdf_text = ""
+        if _pdf_reader is not None:
+            st.caption("Pick your PDF below — it is read **on your device** "
+                       "(nothing is uploaded), so it works on phones too.")
+            pdf_text = _pdf_reader(key="pdf_reader_main", default="") or ""
+            if not (pdf_text and pdf_text.strip()):
+                with st.expander("Trouble picking a file? Use the classic uploader"):
+                    _up = st.file_uploader("Upload your resume", type=["pdf"], key="main_resume")
+                    if _up:
+                        _t = extract_text_from_pdf(_up)
+                        pdf_text = "" if _t.startswith("__ERROR__") else _t
+        else:
+            _up = st.file_uploader("Upload your resume", type=["pdf"], key="main_resume")
+            if _up:
+                _t = extract_text_from_pdf(_up)
+                pdf_text = "" if _t.startswith("__ERROR__") else _t
+        if pdf_text and pdf_text.strip():
+            resume_text = pdf_text
+            base_skills = extract_skills(resume_text)
+            st.success(f"Found {len(base_skills)} skills in your resume.")
     elif method == "📋 Paste Resume Text":
         resume_text = st.text_area(
             "Paste your resume text here:", height=200, key="resume_paste",
