@@ -313,15 +313,55 @@ def get_api_key() -> str:
 API_KEY = get_api_key()
 
 
-def gemini_generate(prompt: str, model: str = "gemini-2.5-flash"):
+import time
+
+# Models tried in order: if the primary is overloaded (503) or rate-limited (429),
+# we auto-retry then fall back to the next so AI features keep working.
+_AI_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"]
+
+
+def _ai_is_transient(err: str) -> bool:
+    e = (err or "").lower()
+    return any(k in e for k in ("503", "500", "unavailable", "overload",
+                                "high demand", "internal", "try again",
+                                "deadline", "timeout", "429", "resource_exhausted"))
+
+
+def _ai_is_fatal(err: str) -> bool:
+    e = (err or "").lower()
+    return any(k in e for k in ("api key not valid", "api_key_invalid",
+                                "permission_denied", "unauthenticated", "invalid api key"))
+
+
+def gemini_generate(prompt: str, model: str = None):
+    """Generate text with auto-retry + model fallback so a busy model (503) or a
+    demand spike (429) doesn't break the feature."""
     if not API_KEY:
         return None, "no_key"
     try:
         client = genai.Client(api_key=API_KEY)
-        resp = client.models.generate_content(model=model, contents=prompt)
-        return resp.text, None
     except Exception as e:
         return None, str(e)
+    chain = ([model] if model else []) + [m for m in _AI_MODELS if m != model]
+    last = "unknown error"
+    for m in chain:
+        for attempt in range(2):
+            try:
+                resp = client.models.generate_content(model=m, contents=prompt)
+                txt = getattr(resp, "text", None)
+                if txt:
+                    return txt, None
+                last = "The AI returned an empty response."
+                break
+            except Exception as e:
+                last = str(e)
+                if _ai_is_fatal(last):
+                    return None, last
+                if _ai_is_transient(last) and attempt == 0:
+                    time.sleep(1.6)      # brief backoff, then one retry on this model
+                    continue
+                break                     # otherwise move on to the next model
+    return None, last
 
 
 def show_ai_error(err: str):
@@ -331,6 +371,10 @@ def show_ai_error(err: str):
     elif "RESOURCE_EXHAUSTED" in err or "429" in err:
         st.warning("⏳ The free Gemini tier allows only a few requests per minute. "
                    "Please wait ~30 seconds and try again.")
+    elif _ai_is_transient(err):
+        st.warning("🌐 The AI model is busy right now (high demand). I already tried a "
+                   "backup model automatically — please wait a few seconds and tap the "
+                   "button again. Your skills, résumé and results are safe.")
     else:
         st.error(f"Something went wrong: {err}")
 
