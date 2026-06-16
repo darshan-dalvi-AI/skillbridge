@@ -112,8 +112,8 @@ h1,h2,h3,h4,h5,h6{ font-family:'Space Grotesk','DM Sans',sans-serif; letter-spac
 .hero-title{ font-family:'Space Grotesk',sans-serif; font-size:clamp(2.9rem,6.6vw,4.9rem); font-weight:700;
   text-align:center; background:linear-gradient(110deg,#ff6a2c,#ff9a4d 38%,#5aa0ff);
   -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-  margin-bottom:0; letter-spacing:-0.02em; line-height:1.02;
-  filter:drop-shadow(0 6px 36px rgba(255,106,44,.55));}
+  margin:18px 0 0; letter-spacing:-0.02em; line-height:1.02;
+  filter:drop-shadow(0 4px 30px rgba(0,0,0,.65)) drop-shadow(0 6px 40px rgba(255,106,44,.5));}
 .hero-sub{ text-align:center; color:#aab6c9; font-family:'DM Sans'; font-size:0.96rem;
   letter-spacing:4px; text-transform:uppercase; margin:10px 0 14px; font-weight:600;}
 .glass{ background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:18px;
@@ -749,8 +749,8 @@ try:
     components.html(_BG3D, height=0, scrolling=False)   # fixed full-page 3D backdrop
 except Exception:
     pass
-st.markdown('<div class="hero-wrap"><p class="hero-title">SkillBridge</p>'
-            '<p class="hero-sub">AI CAREER GUIDANCE · SKILL-GAP ANALYZER</p></div>', unsafe_allow_html=True)
+st.markdown('<p class="hero-title">SkillBridge</p>', unsafe_allow_html=True)
+st.markdown('<p class="hero-sub">AI CAREER GUIDANCE · SKILL-GAP ANALYZER</p>', unsafe_allow_html=True)
 
 student_skills = ss.student_skills
 result = analyze_gap(student_skills, target_role) if student_skills else None
