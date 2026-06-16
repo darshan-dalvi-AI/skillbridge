@@ -109,12 +109,12 @@ html, body, .stApp, [class*="css"]{ font-family:'DM Sans',system-ui,-apple-syste
 h1,h2,h3,h4,h5,h6{ font-family:'Space Grotesk','DM Sans',sans-serif; letter-spacing:-0.01em; }
 .hero-wrap{ text-align:center; padding:26px 12px 8px; margin:2px 0 6px; position:relative;
   background:radial-gradient(58% 135% at 50% 32%, rgba(5,7,14,.58), transparent 72%); }
-.hero-title{ font-family:'Space Grotesk',sans-serif; font-size:clamp(2.9rem,6.6vw,4.9rem); font-weight:700;
+.hero-title{ font-family:'Space Grotesk',sans-serif; font-size:clamp(2.9rem,6.6vw,4.9rem) !important; font-weight:700;
   text-align:center; background:linear-gradient(110deg,#ff6a2c,#ff9a4d 38%,#5aa0ff);
   -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
   margin:18px 0 0; letter-spacing:-0.02em; line-height:1.02;
   filter:drop-shadow(0 4px 30px rgba(0,0,0,.65)) drop-shadow(0 6px 40px rgba(255,106,44,.5));}
-.hero-sub{ text-align:center; color:#aab6c9; font-family:'DM Sans'; font-size:0.96rem;
+.hero-sub{ text-align:center; color:#aab6c9 !important; font-family:'DM Sans'; font-size:1.0rem !important;
   letter-spacing:4px; text-transform:uppercase; margin:10px 0 14px; font-weight:600;}
 .glass{ background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:18px;
   padding:20px; backdrop-filter:blur(14px); margin-bottom:14px; color:var(--text);}
