@@ -68,32 +68,32 @@ ss.theme = "light" if ss.get("theme_toggle", False) else "dark"
 # ---------------------------------------------------------------- THEME / CSS
 _VARS_DARK = """
 :root{
- --bg-grad: radial-gradient(60vw 55vw at 12% -8%, rgba(34,197,94,0.20) 0%, transparent 60%),
-            radial-gradient(55vw 50vw at 92% 6%, rgba(34,211,238,0.16) 0%, transparent 58%),
-            linear-gradient(180deg,#070b16 0%,#04060d 100%);
- --text:#f8fafc; --sub:#94a3b8;
- --glass-bg:rgba(148,163,184,0.06); --glass-border:rgba(148,163,184,0.16);
- --have-bg:rgba(34,197,94,0.14); --have-fg:#86efac; --have-bd:rgba(34,197,94,0.42);
- --miss-bg:rgba(251,113,133,0.12); --miss-fg:#fda4af; --miss-bd:rgba(251,113,133,0.40);
+ --bg-grad: radial-gradient(58vw 52vw at 8% -10%, rgba(255,106,44,0.22) 0%, transparent 60%),
+            radial-gradient(55vw 52vw at 96% 2%, rgba(46,123,255,0.20) 0%, transparent 58%),
+            linear-gradient(180deg,#080a12 0%,#05060c 100%);
+ --text:#eef3fb; --sub:#8b98ad;
+ --glass-bg:rgba(255,255,255,0.045); --glass-border:rgba(140,160,190,0.16);
+ --have-bg:rgba(46,123,255,0.16); --have-fg:#7db4ff; --have-bd:rgba(46,123,255,0.46);
+ --miss-bg:rgba(255,106,44,0.15); --miss-fg:#ffae7d; --miss-bd:rgba(255,106,44,0.46);
  --bonus-bg:rgba(167,139,250,0.14); --bonus-fg:#c4b5fd; --bonus-bd:rgba(167,139,250,0.40);
- --accent1:#22c55e; --accent2:#22d3ee;
- --sidebar-bg:linear-gradient(180deg,#0b1322 0%,#070b16 100%);
- --field-bg:rgba(2,6,15,0.55); --field-fg:#f8fafc; --field-bd:rgba(148,163,184,0.20); --icon-invert:invert(0);
+ --accent1:#ff6a2c; --accent2:#2e7bff;
+ --sidebar-bg:linear-gradient(180deg,#0b1020 0%,#06070e 100%);
+ --field-bg:rgba(6,9,18,0.60); --field-fg:#eef3fb; --field-bd:rgba(140,160,190,0.22); --icon-invert:invert(0);
 }
 """
 _VARS_LIGHT = """
 :root{
- --bg-grad: radial-gradient(60vw 55vw at 12% -8%, rgba(34,197,94,0.10) 0%, transparent 60%),
-            radial-gradient(55vw 50vw at 92% 6%, rgba(34,211,238,0.10) 0%, transparent 58%),
-            linear-gradient(180deg,#f6f9fc 0%,#eef2f8 100%);
- --text:#0f172a; --sub:#475569;
- --glass-bg:rgba(255,255,255,0.80); --glass-border:rgba(15,23,42,0.10);
- --have-bg:rgba(22,163,74,0.14); --have-fg:#15803d; --have-bd:rgba(22,163,74,0.40);
- --miss-bg:rgba(225,29,72,0.10); --miss-fg:#be123c; --miss-bd:rgba(225,29,72,0.32);
+ --bg-grad: radial-gradient(60vw 55vw at 8% -10%, rgba(255,106,44,0.10) 0%, transparent 60%),
+            radial-gradient(55vw 52vw at 96% 2%, rgba(46,123,255,0.10) 0%, transparent 58%),
+            linear-gradient(180deg,#f7f9fc 0%,#eef2f8 100%);
+ --text:#0f1830; --sub:#516079;
+ --glass-bg:rgba(255,255,255,0.82); --glass-border:rgba(15,23,42,0.10);
+ --have-bg:rgba(37,99,235,0.12); --have-fg:#1d4ed8; --have-bd:rgba(37,99,235,0.38);
+ --miss-bg:rgba(234,88,12,0.12); --miss-fg:#c2410c; --miss-bd:rgba(234,88,12,0.36);
  --bonus-bg:rgba(124,58,237,0.10); --bonus-fg:#6d28d9; --bonus-bd:rgba(124,58,237,0.30);
- --accent1:#16a34a; --accent2:#0891b2;
+ --accent1:#ea580c; --accent2:#2563eb;
  --sidebar-bg:linear-gradient(180deg,#eef2f8 0%,#e3e9f3 100%);
- --field-bg:#ffffff; --field-fg:#0f172a; --field-bd:#cbd5e1; --icon-invert:invert(1);
+ --field-bg:#ffffff; --field-fg:#0f1830; --field-bd:#cbd5e1; --icon-invert:invert(1);
 }
 """
 _BASE_CSS = """
@@ -108,7 +108,7 @@ html, body, .stApp, [class*="css"]{ font-family:'DM Sans',system-ui,-apple-syste
 [data-testid="stAppViewContainer"] .block-container{ position:relative; z-index:1; }
 h1,h2,h3,h4,h5,h6{ font-family:'Space Grotesk','DM Sans',sans-serif; letter-spacing:-0.01em; }
 .hero-title{ font-family:'Space Grotesk',sans-serif; font-size:3.1rem; font-weight:700;
-  text-align:center; background:linear-gradient(110deg,#22c55e,#22d3ee 55%,#a78bfa);
+  text-align:center; background:linear-gradient(110deg,#ff6a2c,#ff9a4d 38%,#5aa0ff);
   -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
   margin-bottom:0; letter-spacing:-0.02em;}
 .hero-sub{ text-align:center; color:var(--sub); font-family:'DM Sans'; font-size:0.86rem;
@@ -136,32 +136,32 @@ h1,h2,h3,h4,h5,h6{ font-family:'Space Grotesk','DM Sans',sans-serif; letter-spac
 [data-testid="stMarkdownContainer"] th{ color:var(--text) !important; }
 .sec-label{ font-family:'Space Grotesk'; font-weight:600; color:var(--text); font-size:1.0rem;
   margin:14px 0 8px; letter-spacing:-0.01em;}
-.stButton>button{ background:linear-gradient(135deg,#22c55e,#16a34a);
-  color:#04130a; border:0; border-radius:12px; font-family:'DM Sans'; font-weight:700;
+.stButton>button{ background:linear-gradient(135deg,#ff6e33,#ff8a3d);
+  color:#1b0f06; border:0; border-radius:12px; font-family:'DM Sans'; font-weight:700;
   padding:9px 20px; transition:transform .15s,box-shadow .2s;
-  box-shadow:0 10px 26px -12px rgba(34,197,94,.8);}
-.stButton>button:hover{ transform:translateY(-1px); box-shadow:0 14px 32px -12px rgba(34,197,94,.95);}
+  box-shadow:0 10px 26px -12px rgba(255,106,44,.8);}
+.stButton>button:hover{ transform:translateY(-1px); box-shadow:0 14px 32px -12px rgba(255,106,44,.95);}
 .stButton>button:active{ transform:translateY(1px);}
 [data-testid="stSidebar"]{ background:var(--sidebar-bg) !important; border-right:1px solid var(--glass-border);}
-.stProgress > div > div > div{ background:linear-gradient(90deg,#22c55e,#22d3ee) !important; }
+.stProgress > div > div > div{ background:linear-gradient(90deg,#ff6a2c,#2e7bff) !important; }
 .stTabs [data-baseweb="tab"], .stTabs [data-baseweb="tab"] p { color:var(--sub); font-weight:600; }
 .stTabs [data-baseweb="tab"][aria-selected="true"], .stTabs [data-baseweb="tab"][aria-selected="true"] p { color:var(--text); }
-.stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"]{ background:linear-gradient(90deg,#22c55e,#22d3ee) !important; }
+.stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"]{ background:linear-gradient(90deg,#ff6a2c,#2e7bff) !important; }
 /* GLOWING BOX on the active tab — bigger & cooler so you always know which feature is open */
 .stTabs [data-baseweb="tab-list"]{ gap:7px; }
 .stTabs [data-baseweb="tab"]{ border-radius:14px; padding:10px 20px !important;
   transition:background .25s, box-shadow .25s, color .25s, transform .25s; }
 .stTabs [data-baseweb="tab"]:hover{ background:rgba(148,163,184,0.12); }
 .stTabs [data-baseweb="tab"][aria-selected="true"]{
-  background:linear-gradient(135deg, rgba(34,197,94,0.26), rgba(34,211,238,0.14)) !important;
+  background:linear-gradient(135deg, rgba(255,106,44,0.26), rgba(46,123,255,0.14)) !important;
   transform:translateY(-1px); animation:tabGlow 2.4s ease-in-out infinite; }
 @keyframes tabGlow{
-  0%,100%{ box-shadow:inset 0 0 0 1.7px rgba(34,197,94,0.62), 0 0 24px rgba(34,197,94,0.42), 0 0 50px rgba(34,197,94,0.20); }
-  50%{ box-shadow:inset 0 0 0 1.7px rgba(34,197,94,0.9), 0 0 38px rgba(34,197,94,0.65), 0 0 72px rgba(34,197,94,0.32); } }
+  0%,100%{ box-shadow:inset 0 0 0 1.7px rgba(255,106,44,0.62), 0 0 24px rgba(255,106,44,0.42), 0 0 50px rgba(255,106,44,0.20); }
+  50%{ box-shadow:inset 0 0 0 1.7px rgba(255,106,44,0.9), 0 0 38px rgba(255,106,44,0.65), 0 0 72px rgba(255,106,44,0.32); } }
 @media(prefers-reduced-motion:reduce){ .stTabs [data-baseweb="tab"][aria-selected="true"]{ animation:none;
-  box-shadow:inset 0 0 0 1.7px rgba(34,197,94,0.7), 0 0 30px rgba(34,197,94,0.5) !important; } }
+  box-shadow:inset 0 0 0 1.7px rgba(255,106,44,0.7), 0 0 30px rgba(255,106,44,0.5) !important; } }
 .stTabs [data-baseweb="tab"][aria-selected="true"] p,
-.stTabs [data-baseweb="tab"][aria-selected="true"]{ color:var(--have-fg) !important; font-weight:700 !important; }
+.stTabs [data-baseweb="tab"][aria-selected="true"]{ color:var(--text) !important; font-weight:700 !important; }
 /* native text widgets follow the theme text colour */
 [data-testid="stMetricValue"], [data-testid="stMetricLabel"], [data-testid="stMetricLabel"] p { color:var(--text) !important; }
 [data-testid="stCheckbox"] label, [data-testid="stCheckbox"] label p { color:var(--text) !important; }
@@ -215,7 +215,7 @@ section[data-testid="stFileUploaderDropzone"],
 [data-baseweb="select"] svg{ color:var(--field-fg) !important; fill:var(--field-fg) !important; }
 [data-testid="stChatInput"] textarea{ background:var(--field-bg) !important;
   color:var(--field-fg) !important; }
-.stButton>button{ color:#04130a !important; }
+.stButton>button{ color:#1b0f06 !important; }
 /* protect coloured elements from the broad text rules above */
 .pill-have{ color:var(--have-fg) !important; }
 .pill-miss{ color:var(--miss-fg) !important; }
@@ -262,6 +262,18 @@ section[data-testid="stFileUploaderDropzone"],
    color/fill can't touch them -> invert them to dark in light mode (left white in dark). */
 [data-testid="stToolbarActionButtonIcon"], [data-testid="stToolbarActionButton"] [data-testid="stToolbarActionButtonIcon"]{
   filter: var(--icon-invert) !important; }
+/* ---------------- Fusion AI polish ---------------- */
+.glass{ transition:transform .25s ease, box-shadow .25s ease;
+  box-shadow:0 20px 55px -34px rgba(46,123,255,.55), inset 0 1px 0 rgba(255,255,255,.04); }
+.glass:hover{ transform:translateY(-2px);
+  box-shadow:0 28px 66px -30px rgba(255,106,44,.42), inset 0 1px 0 rgba(255,255,255,.06); }
+.stButton>button{ position:relative; overflow:hidden; letter-spacing:.2px; }
+.stButton>button:hover{ box-shadow:0 16px 40px -12px rgba(255,138,61,.85), 0 0 22px rgba(46,123,255,.35); }
+[data-testid="stChatInput"] > div{ box-shadow:0 0 0 1px rgba(255,106,44,.35),
+  0 0 26px -6px rgba(46,123,255,.45); animation:chatGlow 3.4s ease-in-out infinite; }
+@keyframes chatGlow{ 0%,100%{ box-shadow:0 0 0 1px rgba(255,106,44,.30), 0 0 22px -8px rgba(46,123,255,.40);}
+  50%{ box-shadow:0 0 0 1px rgba(46,123,255,.45), 0 0 30px -4px rgba(255,106,44,.50);} }
+@media(prefers-reduced-motion:reduce){ [data-testid="stChatInput"] > div{ animation:none; } }
 """
 
 
@@ -587,9 +599,85 @@ with st.sidebar:
         st.markdown("---")
 
 # ---------------------------------------------------------------- HEADER
-st.markdown('<p class="hero-title">SkillBridge</p>', unsafe_allow_html=True)
-st.markdown('<p class="hero-sub">AI CAREER GUIDANCE · SKILL-GAP ANALYZER</p>',
-            unsafe_allow_html=True)
+_HERO_3D = r"""<div id="hwrap"><canvas id="hc"></canvas>
+<div id="hov"><div id="ht">SkillBridge</div>
+<div id="hs">AI CAREER GUIDANCE &middot; SKILL-GAP ANALYZER</div></div></div>
+<style>
+*{margin:0;box-sizing:border-box}
+html,body{background:transparent;overflow:hidden}
+#hwrap{position:relative;width:100%;height:300px;border-radius:18px;overflow:hidden;
+ background:radial-gradient(50% 75% at 12% 0%,rgba(255,106,44,.30),transparent 60%),
+ radial-gradient(52% 78% at 90% 8%,rgba(46,123,255,.28),transparent 60%),
+ linear-gradient(180deg,#0a0d16,#06070e);
+ border:1px solid rgba(140,160,190,.16);
+ box-shadow:0 30px 80px -42px rgba(46,123,255,.6),inset 0 1px 0 rgba(255,255,255,.05);}
+#hc{position:absolute;inset:0;width:100%;height:100%;display:block}
+#hov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+ justify-content:center;pointer-events:none;text-align:center;padding:0 16px}
+#ht{font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:3.5rem;
+ letter-spacing:-.02em;line-height:1;
+ background:linear-gradient(110deg,#ff6a2c,#ff9a4d 38%,#5aa0ff);
+ -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+ filter:drop-shadow(0 8px 34px rgba(255,106,44,.40))}
+#hs{margin-top:11px;font-family:'DM Sans',system-ui,sans-serif;color:#a7b6cd;
+ font-size:.8rem;letter-spacing:3px;text-transform:uppercase;font-weight:600}
+@media(max-width:640px){#ht{font-size:2.3rem}#hwrap{height:240px}}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+ var wrap=document.getElementById('hwrap'),cv=document.getElementById('hc');
+ if(typeof THREE==='undefined'||!wrap){return;}
+ var W=wrap.clientWidth||820,H=wrap.clientHeight||300;
+ var rnd=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:true});
+ rnd.setPixelRatio(Math.min(window.devicePixelRatio||1,2));rnd.setSize(W,H,false);
+ var scene=new THREE.Scene();
+ var cam=new THREE.PerspectiveCamera(55,W/H,0.1,100);cam.position.set(0,0,4.4);
+ var grp=new THREE.Group();scene.add(grp);
+ function wire(geo,color,op){return new THREE.LineSegments(new THREE.WireframeGeometry(geo),
+   new THREE.LineBasicMaterial({color:color,transparent:true,opacity:op,blending:THREE.AdditiveBlending}));}
+ var ico=wire(new THREE.IcosahedronGeometry(1.15,1),0xff7a36,0.92);
+ var dod=wire(new THREE.DodecahedronGeometry(1.78,0),0x3b82f6,0.55);
+ var oct=wire(new THREE.OctahedronGeometry(0.72,0),0x66c8ff,0.85);
+ grp.add(ico);grp.add(dod);grp.add(oct);
+ var core=new THREE.Mesh(new THREE.IcosahedronGeometry(1.1,0),
+   new THREE.MeshBasicMaterial({color:0x0b1a33,transparent:true,opacity:0.35}));grp.add(core);
+ var N=540,pos=new Float32Array(N*3),col=new Float32Array(N*3);
+ var cA=new THREE.Color(0xff7a36),cB=new THREE.Color(0x3b82f6);
+ for(var i=0;i<N;i++){var r=2.3+Math.random()*3.4,th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1);
+  pos[i*3]=r*Math.sin(ph)*Math.cos(th);pos[i*3+1]=r*Math.sin(ph)*Math.sin(th);pos[i*3+2]=r*Math.cos(ph);
+  var c=Math.random()<0.5?cA:cB;col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b;}
+ var pg=new THREE.BufferGeometry();
+ pg.setAttribute('position',new THREE.BufferAttribute(pos,3));
+ pg.setAttribute('color',new THREE.BufferAttribute(col,3));
+ var pts=new THREE.Points(pg,new THREE.PointsMaterial({size:0.045,vertexColors:true,
+   transparent:true,opacity:0.9,blending:THREE.AdditiveBlending,depthWrite:false}));scene.add(pts);
+ var mx=0,my=0,tx=0,ty=0;
+ wrap.addEventListener('mousemove',function(e){var b=wrap.getBoundingClientRect();
+  tx=((e.clientX-b.left)/b.width-0.5)*0.6;ty=((e.clientY-b.top)/b.height-0.5)*0.6;});
+ wrap.addEventListener('mouseleave',function(){tx=0;ty=0;});
+ var t=0;
+ function loop(){t+=0.005;
+  grp.rotation.y+=0.0045;grp.rotation.x=Math.sin(t*0.7)*0.12;
+  dod.rotation.y-=0.010;dod.rotation.z+=0.004;
+  oct.rotation.x+=0.011;oct.rotation.y+=0.013;
+  pts.rotation.y+=0.0011;
+  mx+=(tx-mx)*0.05;my+=(ty-my)*0.05;
+  cam.position.x=mx*1.4;cam.position.y=-my*1.0;cam.lookAt(0,0,0);
+  rnd.render(scene,cam);requestAnimationFrame(loop);}
+ loop();
+ function resize(){var w=wrap.clientWidth,h=wrap.clientHeight;if(!w||!h)return;
+  cam.aspect=w/h;cam.updateProjectionMatrix();rnd.setSize(w,h,false);}
+ if(window.ResizeObserver){new ResizeObserver(resize).observe(wrap);}
+ window.addEventListener('resize',resize);
+})();
+</script>"""
+try:
+    components.html(_HERO_3D, height=312, scrolling=False)
+except Exception:
+    st.markdown('<p class="hero-title">SkillBridge</p>', unsafe_allow_html=True)
+    st.markdown('<p class="hero-sub">AI CAREER GUIDANCE · SKILL-GAP ANALYZER</p>', unsafe_allow_html=True)
 
 student_skills = ss.student_skills
 result = analyze_gap(student_skills, target_role) if student_skills else None
@@ -628,7 +716,7 @@ with tabs[0]:
             fig = go.Figure(go.Pie(
                 labels=["Skills you have", "Skills to learn"],
                 values=[have_n, miss_n], hole=0.55,
-                marker_colors=["#00d39a", "#ff6b85"]))
+                marker_colors=["#3b82f6", "#ff7a36"]))
             fig.update_layout(height=210, margin=dict(t=10, b=10, l=10, r=10),
                               paper_bgcolor="rgba(0,0,0,0)", font_color=CHART_FONT,
                               showlegend=True, legend=dict(orientation="h", y=-0.1))
@@ -657,7 +745,7 @@ with tabs[0]:
             top = ranked[:10]
             fig2 = go.Figure(go.Bar(
                 x=[s for s, _, _ in top], y=[d for _, d, _ in top],
-                marker_color=["#ff9d2e" if hi else "#7b8cff" for _, _, hi in top]))
+                marker_color=["#ff8a3d" if hi else "#5b83ff" for _, _, hi in top]))
             fig2.update_layout(height=260, margin=dict(t=10, b=10, l=10, r=10),
                                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                                font_color=CHART_FONT, yaxis_title="Demand score")
@@ -676,7 +764,7 @@ with tabs[0]:
         bench = ROLE_BENCHMARK.get(target_role, DEFAULT_BENCHMARK)
         figp = go.Figure(go.Bar(
             x=[result["match_percent"], bench], y=["You", "Typical applicant"],
-            orientation="h", marker_color=["#00d39a", "#9aa7bd"]))
+            orientation="h", marker_color=["#3b82f6", "#9aa7bd"]))
         figp.update_layout(height=160, margin=dict(t=6, b=6, l=10, r=10),
                            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                            font_color=CHART_FONT, xaxis_title="Match %", xaxis_range=[0, 100])
@@ -692,7 +780,7 @@ with tabs[0]:
             vals = [p for _, p, _ in cats]
             figr = go.Figure(go.Scatterpolar(
                 r=vals + [vals[0]], theta=labels + [labels[0]], fill="toself",
-                line_color="#00d39a", fillcolor="rgba(0,211,154,0.25)"))
+                line_color="#3b82f6", fillcolor="rgba(59,130,246,0.22)"))
             figr.update_layout(height=330, margin=dict(t=30, b=20, l=50, r=50),
                                paper_bgcolor="rgba(0,0,0,0)", font_color=CHART_FONT,
                                polar=dict(bgcolor="rgba(0,0,0,0)",
@@ -770,7 +858,7 @@ with tabs[1]:
         haveset = {sk for sk, _ in lm["have"]}
         figL = go.Figure(go.Bar(
             x=[sk for sk, _ in top], y=[c for _, c in top],
-            marker_color=["#00d39a" if sk in haveset else "#ff6b85" for sk, _ in top],
+            marker_color=["#3b82f6" if sk in haveset else "#ff7a36" for sk, _ in top],
             text=["✓" if sk in haveset else "✗" for sk, _ in top], textposition="outside"))
         figL.update_layout(height=330, margin=dict(t=26, b=10, l=10, r=10),
                            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
@@ -928,7 +1016,7 @@ with tabs[3]:
                     figh = go.Figure(go.Scatter(
                         x=list(range(1, len(hist) + 1)),
                         y=[h.get("score", 0) for h in hist],
-                        mode="lines+markers", line_color="#00d39a", marker=dict(size=8)))
+                        mode="lines+markers", line_color="#3b82f6", marker=dict(size=8)))
                     figh.update_layout(height=240, margin=dict(t=10, b=10, l=10, r=10),
                                        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                                        font_color=CHART_FONT, yaxis_title="Match %",
@@ -976,7 +1064,7 @@ with tabs[4]:
 
         figc = go.Figure(go.Bar(
             x=[roleA, roleB], y=[rA["match_percent"], rB["match_percent"]],
-            marker_color=["#00d39a", "#7b2ff7"], text=[f"{rA['match_percent']}%",
+            marker_color=["#ff7a36", "#3b82f6"], text=[f"{rA['match_percent']}%",
             f"{rB['match_percent']}%"], textposition="auto"))
         figc.update_layout(height=300, margin=dict(t=20, b=10, l=10, r=10),
                            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
