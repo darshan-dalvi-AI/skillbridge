@@ -291,7 +291,7 @@ html, body{ background:var(--bg-grad) !important; background-attachment:fixed !i
 .stApp{ background:transparent !important; }
 [data-testid="stAppViewContainer"], [data-testid="stMain"], section.main,
 [data-testid="stMainBlockContainer"], [data-testid="stBottomBlockContainer"]{ background:transparent !important; }
-iframe[height="0"]{ position:fixed !important; top:0 !important; left:0 !important;
+iframe[title="st.iframe"]{ position:fixed !important; top:0 !important; left:0 !important;
   width:100vw !important; height:100vh !important; border:0 !important; margin:0 !important;
   z-index:-1 !important; pointer-events:none !important; }
 """
@@ -668,6 +668,7 @@ _BG3D = r"""<canvas id="sbbg"></canvas>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
+  try{ var _fe=window.frameElement; if(_fe){ _fe.style.cssText="position:fixed;top:0;left:0;width:100vw;height:100vh;border:0;margin:0;z-index:-1;pointer-events:none;"; var _w=_fe.parentElement; for(var _k=0;_k<3&&_w;_k++){_w.style.height="0";_w.style.minHeight="0";_w=_w.parentElement;} } }catch(e){}
   if(typeof THREE==='undefined')return;
   var cv=document.getElementById('sbbg');
   function vp(){return [window.innerWidth||800, window.innerHeight||600];}
