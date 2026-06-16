@@ -282,6 +282,10 @@ section[data-testid="stFileUploaderDropzone"],
 [data-baseweb="tag"] svg{ fill:#ffffff !important; color:#ffffff !important; }
 [data-baseweb="tag"] [role="presentation"]:hover, [data-baseweb="tag"] [role="button"]:hover{
   background:rgba(255,255,255,.22) !important; border-radius:6px; }
+/* AI Mentor: make the "you" (user) avatar blue to match the theme (assistant stays orange) */
+[data-testid="stChatMessageAvatarUser"]{ background:linear-gradient(135deg,#2e7bff,#1e6bff) !important;
+  color:#ffffff !important; border:0 !important; }
+[data-testid="stChatMessageAvatarUser"] svg{ fill:#ffffff !important; color:#ffffff !important; }
 """
 
 
