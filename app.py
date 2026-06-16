@@ -274,6 +274,14 @@ section[data-testid="stFileUploaderDropzone"],
 @keyframes chatGlow{ 0%,100%{ box-shadow:0 0 0 1px rgba(255,106,44,.30), 0 0 22px -8px rgba(46,123,255,.40);}
   50%{ box-shadow:0 0 0 1px rgba(46,123,255,.45), 0 0 30px -4px rgba(255,106,44,.50);} }
 @media(prefers-reduced-motion:reduce){ [data-testid="stChatInput"] > div{ animation:none; } }
+/* multiselect skill chips -> legible blue chips (skills you know = blue) */
+[data-baseweb="tag"]{ background:linear-gradient(135deg,#2e7bff,#1e6bff) !important;
+  border:0 !important; color:#ffffff !important; border-radius:9px !important;
+  box-shadow:0 4px 14px -7px rgba(46,123,255,.85) !important; }
+[data-baseweb="tag"] span, [data-baseweb="tag"] div, [data-baseweb="tag"] *{ color:#ffffff !important; }
+[data-baseweb="tag"] svg{ fill:#ffffff !important; color:#ffffff !important; }
+[data-baseweb="tag"] [role="presentation"]:hover, [data-baseweb="tag"] [role="button"]:hover{
+  background:rgba(255,255,255,.22) !important; border-radius:6px; }
 """
 
 
