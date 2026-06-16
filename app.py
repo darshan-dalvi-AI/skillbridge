@@ -286,6 +286,14 @@ section[data-testid="stFileUploaderDropzone"],
 [data-testid="stChatMessageAvatarUser"]{ background:linear-gradient(135deg,#2e7bff,#1e6bff) !important;
   color:#ffffff !important; border:0 !important; }
 [data-testid="stChatMessageAvatarUser"] svg{ fill:#ffffff !important; color:#ffffff !important; }
+/* ---- immersive full-page 3D backdrop (the website look) ---- */
+html, body{ background:var(--bg-grad) !important; background-attachment:fixed !important; }
+.stApp{ background:transparent !important; }
+[data-testid="stAppViewContainer"], [data-testid="stMain"], section.main,
+[data-testid="stMainBlockContainer"], [data-testid="stBottomBlockContainer"]{ background:transparent !important; }
+iframe[height="0"]{ position:fixed !important; top:0 !important; left:0 !important;
+  width:100vw !important; height:100vh !important; border:0 !important; margin:0 !important;
+  z-index:-1 !important; pointer-events:none !important; }
 """
 
 
@@ -655,85 +663,58 @@ with st.sidebar:
         st.markdown("---")
 
 # ---------------------------------------------------------------- HEADER
-_HERO_3D = r"""<div id="hwrap"><canvas id="hc"></canvas>
-<div id="hov"><div id="ht">SkillBridge</div>
-<div id="hs">AI CAREER GUIDANCE &middot; SKILL-GAP ANALYZER</div></div></div>
-<style>
-*{margin:0;box-sizing:border-box}
-html,body{background:transparent;overflow:hidden}
-#hwrap{position:relative;width:100%;height:300px;border-radius:18px;overflow:hidden;
- background:radial-gradient(50% 75% at 12% 0%,rgba(255,106,44,.30),transparent 60%),
- radial-gradient(52% 78% at 90% 8%,rgba(46,123,255,.28),transparent 60%),
- linear-gradient(180deg,#0a0d16,#06070e);
- border:1px solid rgba(140,160,190,.16);
- box-shadow:0 30px 80px -42px rgba(46,123,255,.6),inset 0 1px 0 rgba(255,255,255,.05);}
-#hc{position:absolute;inset:0;width:100%;height:100%;display:block}
-#hov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
- justify-content:center;pointer-events:none;text-align:center;padding:0 16px}
-#ht{font-family:'Space Grotesk',system-ui,sans-serif;font-weight:700;font-size:3.5rem;
- letter-spacing:-.02em;line-height:1;
- background:linear-gradient(110deg,#ff6a2c,#ff9a4d 38%,#5aa0ff);
- -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
- filter:drop-shadow(0 8px 34px rgba(255,106,44,.40))}
-#hs{margin-top:11px;font-family:'DM Sans',system-ui,sans-serif;color:#a7b6cd;
- font-size:.8rem;letter-spacing:3px;text-transform:uppercase;font-weight:600}
-@media(max-width:640px){#ht{font-size:2.3rem}#hwrap{height:240px}}
-</style>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+_BG3D = r"""<canvas id="sbbg"></canvas>
+<style>html,body{margin:0;padding:0;background:transparent;overflow:hidden}#sbbg{display:block;width:100vw;height:100vh}</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
- var wrap=document.getElementById('hwrap'),cv=document.getElementById('hc');
- if(typeof THREE==='undefined'||!wrap){return;}
- var W=wrap.clientWidth||820,H=wrap.clientHeight||300;
- var rnd=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:true});
- rnd.setPixelRatio(Math.min(window.devicePixelRatio||1,2));rnd.setSize(W,H,false);
- var scene=new THREE.Scene();
- var cam=new THREE.PerspectiveCamera(55,W/H,0.1,100);cam.position.set(0,0,4.4);
- var grp=new THREE.Group();scene.add(grp);
- function wire(geo,color,op){return new THREE.LineSegments(new THREE.WireframeGeometry(geo),
-   new THREE.LineBasicMaterial({color:color,transparent:true,opacity:op,blending:THREE.AdditiveBlending}));}
- var ico=wire(new THREE.IcosahedronGeometry(1.15,1),0xff7a36,0.92);
- var dod=wire(new THREE.DodecahedronGeometry(1.78,0),0x3b82f6,0.55);
- var oct=wire(new THREE.OctahedronGeometry(0.72,0),0x66c8ff,0.85);
- grp.add(ico);grp.add(dod);grp.add(oct);
- var core=new THREE.Mesh(new THREE.IcosahedronGeometry(1.1,0),
-   new THREE.MeshBasicMaterial({color:0x0b1a33,transparent:true,opacity:0.35}));grp.add(core);
- var N=540,pos=new Float32Array(N*3),col=new Float32Array(N*3);
- var cA=new THREE.Color(0xff7a36),cB=new THREE.Color(0x3b82f6);
- for(var i=0;i<N;i++){var r=2.3+Math.random()*3.4,th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1);
-  pos[i*3]=r*Math.sin(ph)*Math.cos(th);pos[i*3+1]=r*Math.sin(ph)*Math.sin(th);pos[i*3+2]=r*Math.cos(ph);
-  var c=Math.random()<0.5?cA:cB;col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b;}
- var pg=new THREE.BufferGeometry();
- pg.setAttribute('position',new THREE.BufferAttribute(pos,3));
- pg.setAttribute('color',new THREE.BufferAttribute(col,3));
- var pts=new THREE.Points(pg,new THREE.PointsMaterial({size:0.045,vertexColors:true,
-   transparent:true,opacity:0.9,blending:THREE.AdditiveBlending,depthWrite:false}));scene.add(pts);
- var mx=0,my=0,tx=0,ty=0;
- wrap.addEventListener('mousemove',function(e){var b=wrap.getBoundingClientRect();
-  tx=((e.clientX-b.left)/b.width-0.5)*0.6;ty=((e.clientY-b.top)/b.height-0.5)*0.6;});
- wrap.addEventListener('mouseleave',function(){tx=0;ty=0;});
- var t=0;
- function loop(){t+=0.005;
-  grp.rotation.y+=0.0045;grp.rotation.x=Math.sin(t*0.7)*0.12;
-  dod.rotation.y-=0.010;dod.rotation.z+=0.004;
-  oct.rotation.x+=0.011;oct.rotation.y+=0.013;
-  pts.rotation.y+=0.0011;
-  mx+=(tx-mx)*0.05;my+=(ty-my)*0.05;
-  cam.position.x=mx*1.4;cam.position.y=-my*1.0;cam.lookAt(0,0,0);
-  rnd.render(scene,cam);requestAnimationFrame(loop);}
- loop();
- function resize(){var w=wrap.clientWidth,h=wrap.clientHeight;if(!w||!h)return;
-  cam.aspect=w/h;cam.updateProjectionMatrix();rnd.setSize(w,h,false);}
- if(window.ResizeObserver){new ResizeObserver(resize).observe(wrap);}
- window.addEventListener('resize',resize);
+  if(typeof THREE==='undefined')return;
+  var cv=document.getElementById('sbbg');
+  function vp(){return [window.innerWidth||800, window.innerHeight||600];}
+  var v=vp(),W=v[0],H=v[1];
+  var rnd=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:true});
+  rnd.setPixelRatio(Math.min(devicePixelRatio||1,2)); rnd.setSize(W,H,false);
+  var scene=new THREE.Scene();
+  var cam=new THREE.PerspectiveCamera(60,W/H,0.1,100); cam.position.z=7;
+  var N=(W<680?280:660),pos=new Float32Array(N*3),col=new Float32Array(N*3);
+  var cA=new THREE.Color(0xff6a2c),cB=new THREE.Color(0x2e7bff);
+  for(var i=0;i<N;i++){ pos[i*3]=(Math.random()-.5)*18; pos[i*3+1]=(Math.random()-.5)*12; pos[i*3+2]=(Math.random()-.5)*10;
+    var c=Math.random()<.5?cA:cB; col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b; }
+  var pg=new THREE.BufferGeometry();
+  pg.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  pg.setAttribute('color',new THREE.BufferAttribute(col,3));
+  var pts=new THREE.Points(pg,new THREE.PointsMaterial({size:.05,vertexColors:true,transparent:true,opacity:.92,blending:THREE.AdditiveBlending,depthWrite:false}));
+  scene.add(pts);
+  function wire(g,c,o){return new THREE.LineSegments(new THREE.WireframeGeometry(g),new THREE.LineBasicMaterial({color:c,transparent:true,opacity:o,blending:THREE.AdditiveBlending}));}
+  var s1=wire(new THREE.IcosahedronGeometry(2.0,1),0xff7a36,.5); s1.position.set(-5.4,2.5,-1);
+  var s2=wire(new THREE.DodecahedronGeometry(1.7,0),0x3b82f6,.5); s2.position.set(5.6,-2.5,-1);
+  scene.add(s1); scene.add(s2);
+  var tx=0,ty=0,mx=0,my=0,sy=0;
+  try{ var P=window.parent;
+    P.addEventListener('mousemove',function(e){tx=(e.clientX/(P.innerWidth||W)-.5);ty=(e.clientY/(P.innerHeight||H)-.5);});
+    var sc=P.document.querySelector('[data-testid="stAppViewContainer"]')||P;
+    sc.addEventListener('scroll',function(){sy=(sc.scrollTop||P.scrollY||0);},{passive:true});
+  }catch(e){}
+  function loop(){
+    pts.rotation.y+=.0008; pts.rotation.x+=.0003;
+    s1.rotation.x+=.0024; s1.rotation.y+=.0031;
+    s2.rotation.x-=.0026; s2.rotation.y+=.0022;
+    mx+=(tx-mx)*.04; my+=(ty-my)*.04;
+    cam.position.x=mx*1.7; cam.position.y=-my*1.1 - sy*.0012; cam.lookAt(0,0,0);
+    rnd.render(scene,cam); requestAnimationFrame(loop);
+  }
+  loop();
+  function onresize(){ var q=vp(); W=q[0];H=q[1]; cam.aspect=W/H; cam.updateProjectionMatrix(); rnd.setSize(W,H,false); }
+  addEventListener('resize',onresize);
+  [120,400,900,1600,2600].forEach(function(ms){setTimeout(onresize,ms);});
 })();
 </script>"""
 try:
-    components.html(_HERO_3D, height=312, scrolling=False)
+    components.html(_BG3D, height=0, scrolling=False)   # fixed full-page 3D backdrop
 except Exception:
-    st.markdown('<p class="hero-title">SkillBridge</p>', unsafe_allow_html=True)
-    st.markdown('<p class="hero-sub">AI CAREER GUIDANCE · SKILL-GAP ANALYZER</p>', unsafe_allow_html=True)
+    pass
+st.markdown('<p class="hero-title">SkillBridge</p>', unsafe_allow_html=True)
+st.markdown('<p class="hero-sub">AI CAREER GUIDANCE · SKILL-GAP ANALYZER</p>', unsafe_allow_html=True)
 
 student_skills = ss.student_skills
 result = analyze_gap(student_skills, target_role) if student_skills else None
