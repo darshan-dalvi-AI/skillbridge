@@ -684,11 +684,11 @@ _BG3D = r"""<canvas id="sbbg"></canvas>
   var pg=new THREE.BufferGeometry();
   pg.setAttribute('position',new THREE.BufferAttribute(pos,3));
   pg.setAttribute('color',new THREE.BufferAttribute(col,3));
-  var pts=new THREE.Points(pg,new THREE.PointsMaterial({size:.05,vertexColors:true,transparent:true,opacity:.92,blending:THREE.AdditiveBlending,depthWrite:false}));
+  var pts=new THREE.Points(pg,new THREE.PointsMaterial({size:.05,vertexColors:true,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false}));
   scene.add(pts);
   function wire(g,c,o){return new THREE.LineSegments(new THREE.WireframeGeometry(g),new THREE.LineBasicMaterial({color:c,transparent:true,opacity:o,blending:THREE.AdditiveBlending}));}
-  var s1=wire(new THREE.IcosahedronGeometry(2.0,1),0xff7a36,.5); s1.position.set(-5.4,2.5,-1);
-  var s2=wire(new THREE.DodecahedronGeometry(1.7,0),0x3b82f6,.5); s2.position.set(5.6,-2.5,-1);
+  var s1=wire(new THREE.IcosahedronGeometry(2.0,1),0xff7a36,.42); s1.position.set(-6.7,3.3,-1.6);
+  var s2=wire(new THREE.DodecahedronGeometry(1.7,0),0x3b82f6,.42); s2.position.set(6.7,-3.1,-1.6);
   scene.add(s1); scene.add(s2);
   var tx=0,ty=0,mx=0,my=0,sy=0;
   try{ var P=window.parent;
