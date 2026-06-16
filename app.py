@@ -107,12 +107,15 @@ html, body, .stApp, [class*="css"]{ font-family:'DM Sans',system-ui,-apple-syste
   mask-image:radial-gradient(ellipse 75% 55% at 50% 0%,#000 35%,transparent 80%);}
 [data-testid="stAppViewContainer"] .block-container{ position:relative; z-index:1; }
 h1,h2,h3,h4,h5,h6{ font-family:'Space Grotesk','DM Sans',sans-serif; letter-spacing:-0.01em; }
-.hero-title{ font-family:'Space Grotesk',sans-serif; font-size:3.1rem; font-weight:700;
+.hero-wrap{ text-align:center; padding:26px 12px 8px; margin:2px 0 6px; position:relative;
+  background:radial-gradient(58% 135% at 50% 32%, rgba(5,7,14,.58), transparent 72%); }
+.hero-title{ font-family:'Space Grotesk',sans-serif; font-size:clamp(2.9rem,6.6vw,4.9rem); font-weight:700;
   text-align:center; background:linear-gradient(110deg,#ff6a2c,#ff9a4d 38%,#5aa0ff);
   -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-  margin-bottom:0; letter-spacing:-0.02em;}
-.hero-sub{ text-align:center; color:var(--sub); font-family:'DM Sans'; font-size:0.86rem;
-  letter-spacing:3px; text-transform:uppercase; margin:8px 0 16px; font-weight:500;}
+  margin-bottom:0; letter-spacing:-0.02em; line-height:1.02;
+  filter:drop-shadow(0 6px 36px rgba(255,106,44,.55));}
+.hero-sub{ text-align:center; color:#aab6c9; font-family:'DM Sans'; font-size:0.96rem;
+  letter-spacing:4px; text-transform:uppercase; margin:10px 0 14px; font-weight:600;}
 .glass{ background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:18px;
   padding:20px; backdrop-filter:blur(14px); margin-bottom:14px; color:var(--text);}
 .score-ring{ font-family:'Space Grotesk'; font-size:3.4rem; font-weight:700;
@@ -671,41 +674,73 @@ _BG3D = r"""<canvas id="sbbg"></canvas>
   try{ var _fe=window.frameElement; if(_fe){ _fe.style.cssText="position:fixed;top:0;left:0;width:100vw;height:100vh;border:0;margin:0;z-index:-1;pointer-events:none;"; var _w=_fe.parentElement; for(var _k=0;_k<3&&_w;_k++){_w.style.height="0";_w.style.minHeight="0";_w=_w.parentElement;} } }catch(e){}
   if(typeof THREE==='undefined')return;
   var cv=document.getElementById('sbbg');
-  function vp(){return [window.innerWidth||800, window.innerHeight||600];}
+  function vp(){return [window.innerWidth||1200, window.innerHeight||800];}
   var v=vp(),W=v[0],H=v[1];
   var rnd=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:true});
   rnd.setPixelRatio(Math.min(devicePixelRatio||1,2)); rnd.setSize(W,H,false);
   var scene=new THREE.Scene();
-  var cam=new THREE.PerspectiveCamera(60,W/H,0.1,100); cam.position.z=7;
-  var N=(W<680?280:660),pos=new Float32Array(N*3),col=new Float32Array(N*3);
-  var cA=new THREE.Color(0xff6a2c),cB=new THREE.Color(0x2e7bff);
-  for(var i=0;i<N;i++){ pos[i*3]=(Math.random()-.5)*18; pos[i*3+1]=(Math.random()-.5)*12; pos[i*3+2]=(Math.random()-.5)*10;
-    var c=Math.random()<.5?cA:cB; col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b; }
-  var pg=new THREE.BufferGeometry();
-  pg.setAttribute('position',new THREE.BufferAttribute(pos,3));
-  pg.setAttribute('color',new THREE.BufferAttribute(col,3));
-  var pts=new THREE.Points(pg,new THREE.PointsMaterial({size:.05,vertexColors:true,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false}));
-  scene.add(pts);
-  function wire(g,c,o){return new THREE.LineSegments(new THREE.WireframeGeometry(g),new THREE.LineBasicMaterial({color:c,transparent:true,opacity:o,blending:THREE.AdditiveBlending}));}
-  var s1=wire(new THREE.IcosahedronGeometry(2.0,1),0xff7a36,.42); s1.position.set(-6.7,3.3,-1.6);
-  var s2=wire(new THREE.DodecahedronGeometry(1.7,0),0x3b82f6,.42); s2.position.set(6.7,-3.1,-1.6);
-  scene.add(s1); scene.add(s2);
-  var tx=0,ty=0,mx=0,my=0,sy=0;
-  try{ var P=window.parent;
-    P.addEventListener('mousemove',function(e){tx=(e.clientX/(P.innerWidth||W)-.5);ty=(e.clientY/(P.innerHeight||H)-.5);});
-    var sc=P.document.querySelector('[data-testid="stAppViewContainer"]')||P;
-    sc.addEventListener('scroll',function(){sy=(sc.scrollTop||P.scrollY||0);},{passive:true});
-  }catch(e){}
+  var cam=new THREE.PerspectiveCamera(62,W/H,0.1,260); cam.position.z=18;
+  var cA=new THREE.Color(0xff7a36), cB=new THREE.Color(0x4a9bff);
+  // deep parallax starfield
+  var SN=(W<680?260:560), sp=new Float32Array(SN*3), sc=new Float32Array(SN*3);
+  for(var i=0;i<SN;i++){ sp[i*3]=(Math.random()-.5)*72; sp[i*3+1]=(Math.random()-.5)*48; sp[i*3+2]=(Math.random()-.5)*60-12;
+    var c=Math.random()<.5?cA:cB; sc[i*3]=c.r;sc[i*3+1]=c.g;sc[i*3+2]=c.b; }
+  var sg=new THREE.BufferGeometry();
+  sg.setAttribute('position',new THREE.BufferAttribute(sp,3));
+  sg.setAttribute('color',new THREE.BufferAttribute(sc,3));
+  var stars=new THREE.Points(sg,new THREE.PointsMaterial({size:.16,vertexColors:true,transparent:true,opacity:.72,blending:THREE.AdditiveBlending,depthWrite:false}));
+  scene.add(stars);
+  // living constellation network
+  var NN=(W<680?70:130), BX=20,BY=13,BZ=8;
+  var np=new Float32Array(NN*3), ncol=new Float32Array(NN*3), nv=new Float32Array(NN*3);
+  for(var i=0;i<NN;i++){ np[i*3]=(Math.random()-.5)*2*BX; np[i*3+1]=(Math.random()-.5)*2*BY; np[i*3+2]=(Math.random()-.5)*2*BZ;
+    var c=Math.random()<.5?cA:cB; ncol[i*3]=c.r;ncol[i*3+1]=c.g;ncol[i*3+2]=c.b;
+    nv[i*3]=(Math.random()-.5)*.022; nv[i*3+1]=(Math.random()-.5)*.022; nv[i*3+2]=(Math.random()-.5)*.015; }
+  var ng=new THREE.BufferGeometry();
+  ng.setAttribute('position',new THREE.BufferAttribute(np,3));
+  ng.setAttribute('color',new THREE.BufferAttribute(ncol,3));
+  var nodes=new THREE.Points(ng,new THREE.PointsMaterial({size:.30,vertexColors:true,transparent:true,opacity:.95,blending:THREE.AdditiveBlending,depthWrite:false}));
+  scene.add(nodes);
+  var MAXE=NN*7, ep=new Float32Array(MAXE*6), ec=new Float32Array(MAXE*6);
+  var eg=new THREE.BufferGeometry();
+  eg.setAttribute('position',new THREE.BufferAttribute(ep,3));
+  eg.setAttribute('color',new THREE.BufferAttribute(ec,3));
+  var edges=new THREE.LineSegments(eg,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));
+  scene.add(edges);
+  var DTH=5.0, DTH2=DTH*DTH;
+  function step(){
+    for(var i=0;i<NN;i++){ var x=i*3;
+      np[x]+=nv[x]; np[x+1]+=nv[x+1]; np[x+2]+=nv[x+2];
+      if(np[x]>BX||np[x]<-BX)nv[x]*=-1;
+      if(np[x+1]>BY||np[x+1]<-BY)nv[x+1]*=-1;
+      if(np[x+2]>BZ||np[x+2]<-BZ)nv[x+2]*=-1; }
+    ng.attributes.position.needsUpdate=true;
+    var e=0;
+    for(var a=0;a<NN;a++){ var ax=a*3;
+      for(var b=a+1;b<NN;b++){ var bx=b*3;
+        var dx=np[ax]-np[bx],dy=np[ax+1]-np[bx+1],dz=np[ax+2]-np[bx+2];
+        var d2=dx*dx+dy*dy+dz*dz;
+        if(d2<DTH2 && e<MAXE){ var t=1-Math.sqrt(d2)/DTH, o=e*6;
+          ep[o]=np[ax];ep[o+1]=np[ax+1];ep[o+2]=np[ax+2];
+          ep[o+3]=np[bx];ep[o+4]=np[bx+1];ep[o+5]=np[bx+2];
+          ec[o]=ncol[ax]*t;ec[o+1]=ncol[ax+1]*t;ec[o+2]=ncol[ax+2]*t;
+          ec[o+3]=ncol[bx]*t;ec[o+4]=ncol[bx+1]*t;ec[o+5]=ncol[bx+2]*t;
+          e++; } } }
+    eg.setDrawRange(0,e*2); eg.attributes.position.needsUpdate=true; eg.attributes.color.needsUpdate=true;
+  }
+  var tx=0,ty=0,mx=0,my=0;
+  try{ var P=window.parent; P.addEventListener('mousemove',function(ev){tx=(ev.clientX/(P.innerWidth||W)-.5);ty=(ev.clientY/(P.innerHeight||H)-.5);}); }catch(e){}
   function loop(){
-    pts.rotation.y+=.0008; pts.rotation.x+=.0003;
-    s1.rotation.x+=.0024; s1.rotation.y+=.0031;
-    s2.rotation.x-=.0026; s2.rotation.y+=.0022;
+    step();
+    stars.rotation.y+=.00035; stars.rotation.x+=.00012;
+    nodes.rotation.y+=.0006; edges.rotation.y+=.0006;
+    nodes.rotation.x+=.0002; edges.rotation.x+=.0002;
     mx+=(tx-mx)*.04; my+=(ty-my)*.04;
-    cam.position.x=mx*1.7; cam.position.y=-my*1.1 - sy*.0012; cam.lookAt(0,0,0);
+    cam.position.x=mx*4.5; cam.position.y=-my*3.0; cam.lookAt(0,0,0);
     rnd.render(scene,cam); requestAnimationFrame(loop);
   }
   loop();
-  function onresize(){ var q=vp(); W=q[0];H=q[1]; cam.aspect=W/H; cam.updateProjectionMatrix(); rnd.setSize(W,H,false); }
+  function onresize(){var q=vp();W=q[0];H=q[1];cam.aspect=W/H;cam.updateProjectionMatrix();rnd.setSize(W,H,false);}
   addEventListener('resize',onresize);
   [120,400,900,1600,2600].forEach(function(ms){setTimeout(onresize,ms);});
 })();
@@ -714,8 +749,8 @@ try:
     components.html(_BG3D, height=0, scrolling=False)   # fixed full-page 3D backdrop
 except Exception:
     pass
-st.markdown('<p class="hero-title">SkillBridge</p>', unsafe_allow_html=True)
-st.markdown('<p class="hero-sub">AI CAREER GUIDANCE · SKILL-GAP ANALYZER</p>', unsafe_allow_html=True)
+st.markdown('<div class="hero-wrap"><p class="hero-title">SkillBridge</p>'
+            '<p class="hero-sub">AI CAREER GUIDANCE · SKILL-GAP ANALYZER</p></div>', unsafe_allow_html=True)
 
 student_skills = ss.student_skills
 result = analyze_gap(student_skills, target_role) if student_skills else None
