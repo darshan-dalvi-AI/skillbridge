@@ -24,11 +24,12 @@ import streamlit.components.v1 as components
 from roles_data import (
     ROLE_REQUIREMENTS, MASTER_SKILLS, ROLE_SALARY_IN,
     ROLE_BENCHMARK, DEFAULT_BENCHMARK,
+    BRANCHES, ROLE_TO_BRANCH, SALARY_BAND_MULT,
 )
 from analyzer import (
     extract_text_from_pdf, extract_skills, analyze_gap,
     estimate_timeline, rank_in_demand, score_resume_quality, jd_match,
-    ats_score, skill_categories,
+    ats_score, skill_categories, extract_experience,
 )
 from courses_data import get_courses
 from market_data import curated_market, ai_market_pulse
@@ -462,6 +463,7 @@ def _restore_profile_once():
             ss["_restored_skills"] = _sk
         if prof.get("target_role") in ROLE_REQUIREMENTS:
             ss.setdefault("role_sel", prof["target_role"])
+            ss.setdefault("branch_sel", ROLE_TO_BRANCH.get(prof["target_role"], "Computer / IT"))
         if prof.get("resume_text"):
             ss.resume_text = prof["resume_text"]
             ss.setdefault("resumes", [])
@@ -518,7 +520,11 @@ with st.sidebar:
     # Skills & role are instantiated FIRST so the login/logout reruns in the
     # account box below can never discard the user's selected skills.
     st.markdown("### 🎯 Your Target")
-    target_role = st.selectbox("Target role you want:", list(ROLE_REQUIREMENTS.keys()), key="role_sel")
+    branch = st.selectbox("Your branch / stream:", list(BRANCHES.keys()), key="branch_sel")
+    _role_opts = BRANCHES[branch]
+    if ss.get("role_sel") not in _role_opts:
+        ss["role_sel"] = _role_opts[0]
+    target_role = st.selectbox("Target role you want:", _role_opts, key="role_sel")
     method = st.radio("How to provide your skills:",
                       ["📄 Upload Resume (PDF)", "📋 Paste Resume Text",
                        "✅ Select Skills Manually"], key="skill_method")
@@ -797,11 +803,30 @@ with tabs[0]:
         with c3:
             sal = ROLE_SALARY_IN.get(target_role)
             if sal:
-                st.markdown('<div class="sec-label">💰 Fresher salary (India)</div>',
+                _exp = extract_experience(ss.get("resume_text", ""))
+                _lvl = _exp["level"]
+                _mm = {b.split(" (")[0]: m for b, m in SALARY_BAND_MULT}
+                _m = _mm.get(_lvl, 1.0)
+                _lo, _hi = round(sal["low"] * _m, 1), round(sal["high"] * _m, 1)
+                st.markdown('<div class="sec-label">💰 Salary by experience (India)</div>',
                             unsafe_allow_html=True)
-                st.markdown(f'<div class="salary">₹{sal["low"]}–{sal["high"]} LPA</div>', unsafe_allow_html=True)
-                st.caption(f"Median ≈ ₹{sal['median']} LPA · indicative, varies by "
-                           "company/city/skills.")
+                st.markdown(f'<div class="salary">₹{_lo}–{_hi} LPA</div>', unsafe_allow_html=True)
+                if _exp["years"] > 0:
+                    st.caption(f"~{_exp['years']} yrs experience detected in your résumé → "
+                               f"**{_lvl}-level** market value · indicative, varies by company/city/skills.")
+                else:
+                    st.caption("Fresher band shown · upload a résumé with experience to see your "
+                               "level & market value · indicative.")
+                _rows = ""
+                for _b, _mu in SALARY_BAND_MULT:
+                    _blo, _bhi = round(sal["low"] * _mu, 1), round(sal["high"] * _mu, 1)
+                    _here = _b.startswith(_lvl)
+                    _style = ("font-weight:700;color:var(--have-fg)" if _here else "color:var(--sub)")
+                    _rows += (f"<div style='display:flex;justify-content:space-between;gap:10px;"
+                              f"padding:3px 0;{_style}'><span>{'▸ ' if _here else ''}{_b}</span>"
+                              f"<span>₹{_blo}–{_bhi} LPA</span></div>")
+                st.markdown(f"<div style='margin-top:6px;font-size:.85rem'>{_rows}</div>",
+                            unsafe_allow_html=True)
 
         st.progress(result["match_percent"] / 100)
 

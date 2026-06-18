@@ -272,3 +272,36 @@ def skill_categories(role: str, student_skills: list) -> list:
     out = [(c, round(h / t * 100), t) for c, (h, t) in cats.items()]
     out.sort(key=lambda x: x[0])
     return out
+
+
+def extract_experience(text: str) -> dict:
+    """Estimate years of professional experience from a résumé.
+    Prefers an explicit 'X years of experience' phrase; else uses the longest
+    dated work span. Returns {years, level, employed}. Pure heuristic, no AI."""
+    import datetime as _dt
+    out = {"years": 0.0, "level": "Fresher", "employed": False}
+    if not text:
+        return out
+    low = text.lower()
+    years = 0.0
+    for pat in (r"(\d{1,2}(?:\.\d)?)\s*\+?\s*(?:years?|yrs?)\s*(?:of\s+)?(?:experience|exp|work)",
+                r"(?:experience|exp)\s*(?:of|:|-)?\s*(\d{1,2}(?:\.\d)?)\s*\+?\s*(?:years?|yrs?)"):
+        for m in re.findall(pat, low):
+            try:
+                years = max(years, float(m))
+            except ValueError:
+                pass
+    if years == 0.0:  # fallback: longest dated span in work history
+        cur = _dt.date.today().year
+        best = 0
+        for a, b in re.findall(r"\b(19\d{2}|20\d{2})\s*[-–—]{1,2}\s*(present|current|now|19\d{2}|20\d{2})\b", low):
+            ay = int(a)
+            by = cur if b in ("present", "current", "now") else int(b)
+            if 0 <= by - ay < 45:
+                best = max(best, by - ay)
+        years = float(min(best, 30))
+    employed = any(k in low for k in ("present", "currently working", "current company",
+                                      "till date", "till now"))
+    level = "Fresher" if years < 3 else ("Mid" if years < 7 else "Senior")
+    out.update(years=round(years, 1), level=level, employed=employed)
+    return out
