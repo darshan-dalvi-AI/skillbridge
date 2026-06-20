@@ -10,7 +10,9 @@
 
 **🔗 Live demo:** **https://skillbridge-darshan.streamlit.app**
 
-> Final-year B.E. Computer Engineering project · Mumbai University
+> A project by **Darshan Dalvi** · Computer Engineering
+
+**© 2026 Darshan Dalvi — All rights reserved.** The code is public for viewing & evaluation only; please do not copy or reuse it without permission (see [LICENSE](LICENSE)).
 
 ---
 
