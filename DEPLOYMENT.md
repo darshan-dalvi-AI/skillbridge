@@ -109,6 +109,29 @@ Three pieces: **Streamlit Community Cloud** (frontend) + **Render** (backend) +
 
 ---
 
+## 4b. Slow first load & SEO (added July 2026)
+
+**Why the site was slow after a long idle period:** Streamlit Community Cloud
+puts free apps to sleep after ~12 hours with no visitors. The next visitor sees
+the "app is sleeping" page and waits for a full container reboot.
+
+**Fix in this repo:** `.github/workflows/keep-alive.yml` — a GitHub Action that
+visits the app in headless Chrome every 5 hours so it never hits the 12-hour
+sleep limit. It runs free on this public repo. Two things to know:
+
+- After pushing, check the **Actions** tab on GitHub once and enable workflows
+  if prompted. You can also trigger "Keep SkillBridge awake" manually there.
+- GitHub pauses cron workflows after ~60 days without any repo activity; any
+  commit (or re-enabling in the Actions tab) resumes it.
+
+**SEO:** `seo.py` patches Streamlit's served `index.html` at startup with the
+meta description, canonical URL, Open Graph / X cards, JSON-LD schema and a
+crawlable `<noscript>` content block (H1/H2 + text + profile links). It's
+idempotent and fails silently, so it can never break the app. `og-image.png`
+is the social-share preview image (referenced via the raw GitHub URL).
+
+---
+
 ## 5. Quick reference
 
 | Piece | Host | Free? | Watch out for |

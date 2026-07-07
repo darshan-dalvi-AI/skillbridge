@@ -12,6 +12,8 @@ No AI here — this module is pure, testable Python. The AI part
 """
 
 import re
+from functools import lru_cache
+
 import pdfplumber
 from roles_data import (
     MASTER_SKILLS, SKILL_ALIASES, ROLE_REQUIREMENTS,
@@ -35,16 +37,12 @@ def extract_text_from_pdf(pdf_file) -> str:
     return text
 
 
-def extract_skills(text: str) -> list:
-    """
-    Find which known skills appear in the text.
-    Strategy: lowercase the text, then for every skill (and alias)
-    check if it appears as a whole word. Returns canonical names.
-    This keyword + alias matching is the NLP component.
-    """
-    if not text:
-        return []
-
+@lru_cache(maxsize=512)
+def _extract_skills_cached(text: str) -> tuple:
+    """Heavy core of extract_skills: a regex sweep over every master skill + alias.
+    Cached by input text so repeated Streamlit reruns (and the per-job Adzuna
+    parsing, which calls this once per posting) don't re-scan the same text every
+    time. Returns an immutable tuple so a cached entry can't be mutated by callers."""
     text_low = " " + text.lower() + " "
     found = set()
 
@@ -61,7 +59,22 @@ def extract_skills(text: str) -> list:
         if re.search(pattern, text_low):
             found.add(canonical)
 
-    return sorted(found)
+    return tuple(sorted(found))
+
+
+def extract_skills(text: str) -> list:
+    """
+    Find which known skills appear in the text.
+    Strategy: lowercase the text, then for every skill (and alias)
+    check if it appears as a whole word. Returns canonical names.
+    This keyword + alias matching is the NLP component.
+
+    Thin wrapper over the cached core; returns a fresh list on each call so
+    callers may safely mutate the result without corrupting the cache.
+    """
+    if not text:
+        return []
+    return list(_extract_skills_cached(text))
 
 
 def analyze_gap(student_skills: list, target_role: str) -> dict:

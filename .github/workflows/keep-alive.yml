@@ -1,0 +1,64 @@
+# Keeps the Streamlit Community Cloud app awake.
+#
+# Why: Streamlit puts free apps to sleep after ~12 hours without traffic, and
+# the next visitor then waits a long time (sleeping page + container reboot).
+# This workflow visits the app in a real headless Chrome every 5 hours, which
+# counts as viewer traffic — so the app (almost) never sleeps.
+#
+# Notes:
+# * Runs free on public repos.
+# * GitHub pauses scheduled workflows after ~60 days with no repo activity —
+#   an occasional commit (or clicking "Enable" in the Actions tab) resumes it.
+# * You can trigger it manually: GitHub → Actions → "Keep SkillBridge awake"
+#   → Run workflow.
+
+name: Keep SkillBridge awake
+
+on:
+  schedule:
+    - cron: "17 */5 * * *"    # every 5 hours (UTC), well under the 12h limit
+  workflow_dispatch: {}        # allow manual runs from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Install selenium (Chrome is preinstalled on the runner)
+        run: pip install selenium
+
+      - name: Visit the app like a real browser
+        run: |
+          python - <<'PY'
+          import time
+          from selenium import webdriver
+          from selenium.webdriver.chrome.options import Options
+
+          URL = "https://skillbridge-darshan.streamlit.app/"
+
+          opts = Options()
+          opts.add_argument("--headless=new")
+          opts.add_argument("--no-sandbox")
+          opts.add_argument("--disable-dev-shm-usage")
+          opts.add_argument("--window-size=1280,900")
+
+          d = webdriver.Chrome(options=opts)
+          d.get(URL)
+          time.sleep(25)   # let the JS app boot and open its websocket
+
+          # If the app had already fallen asleep, click the wake-up button.
+          try:
+              for b in d.find_elements("tag name", "button"):
+                  if "back up" in (b.text or "").lower():
+                      b.click()
+                      print("App was asleep — clicked wake-up, waiting for reboot…")
+                      time.sleep(90)
+                      break
+          except Exception as e:
+              print("wake-button check skipped:", e)
+
+          time.sleep(20)   # keep the session open a bit so traffic registers
+          print("Page title:", d.title)
+          d.quit()
+          print("Ping complete.")
+          PY

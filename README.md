@@ -105,4 +105,4 @@ streamlit run app.py
 
 ---
 
-*Built by **Darshan Dalvi** · [LinkedIn](https://linkedin.com/in/darshan-dalvi) · [GitHub](https://github.com/darshan-dalvi)*
+*Built by **Darshan Dalvi** · [LinkedIn](https://www.linkedin.com/in/darshan-dalvi) · [GitHub](https://github.com/darshan-dalvi-AI)*

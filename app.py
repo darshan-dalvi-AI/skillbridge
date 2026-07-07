@@ -50,8 +50,12 @@ except Exception:
     _pdf_reader = None
 
 # ---------------------------------------------------------------- PAGE CONFIG
-st.set_page_config(page_title="SkillBridge — AI Career Analyzer",
+import seo
+st.set_page_config(page_title=seo.TITLE,   # 50-60 chars, keyword-rich (SEO audit fix)
                    page_icon="🎯", layout="wide")
+# Patch Streamlit's served index.html with meta description, canonical, Open
+# Graph / X cards, JSON-LD schema and crawlable H1 content (SEO audit fixes).
+seo.inject_seo()
 
 # ---------------------------------------------------------------- STATE
 ss = st.session_state
@@ -357,13 +361,21 @@ def _ai_is_fatal(err: str) -> bool:
                                 "permission_denied", "unauthenticated", "invalid api key"))
 
 
+@st.cache_resource(show_spinner=False)
+def _get_genai_client(api_key: str):
+    """Create the Gemini client ONCE per process and reuse it, instead of
+    rebuilding it (new HTTP session + auth handshake) on every AI call.
+    Clients/connections are exactly what st.cache_resource is designed to hold."""
+    return genai.Client(api_key=api_key)
+
+
 def gemini_generate(prompt: str, model: str = None):
     """Generate text with auto-retry + model fallback so a busy model (503) or a
     demand spike (429) doesn't break the feature."""
     if not API_KEY:
         return None, "no_key"
     try:
-        client = genai.Client(api_key=API_KEY)
+        client = _get_genai_client(API_KEY)
     except Exception as e:
         return None, str(e)
     chain = ([model] if model else []) + [m for m in _AI_MODELS if m != model]
@@ -431,6 +443,23 @@ def cached_live_skills(role):
     """Cache live job-market fetch per role (30 min) so Adzuna isn't hit on
     every rerun and the demo stays snappy."""
     return fetch_live_skills(role)
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def cached_history(_session, key):
+    """Cache the user's progress history (a backend HTTP GET) for 60s so the
+    Progress tab doesn't re-hit the API on every Streamlit rerun. `key` (the
+    user id / name) keeps users' caches separate; `_session` is not hashed.
+    Cleared right after a save so the chart always shows the latest point."""
+    return api_client.get_history(_session)
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def cached_export(_session, key):
+    """Cache the user's full data export (a backend HTTP GET) for 60s so the
+    Progress tab doesn't re-hit the API on every rerun. Keyed per user; cleared
+    on save so the JSON download reflects the latest state."""
+    return api_client.export_all(_session)
 
 
 # ------------------------------------------------------- RESTORE ON REFRESH
@@ -755,8 +784,10 @@ try:
     components.html(_BG3D, height=0, scrolling=False)   # fixed full-page 3D backdrop
 except Exception:
     pass
-st.markdown('<p class="hero-title">SkillBridge</p>', unsafe_allow_html=True)
-st.markdown('<p class="hero-sub">AI CAREER GUIDANCE · SKILL-GAP ANALYZER</p>', unsafe_allow_html=True)
+# Real H1/H2 tags (same look — CSS targets the classes) so search engines see
+# proper page headings instead of plain <p> text.
+st.markdown('<h1 class="hero-title">SkillBridge</h1>', unsafe_allow_html=True)
+st.markdown('<h2 class="hero-sub">AI CAREER GUIDANCE · SKILL-GAP ANALYZER</h2>', unsafe_allow_html=True)
 
 student_skills = ss.student_skills
 result = analyze_gap(student_skills, target_role) if student_skills else None
@@ -1097,17 +1128,20 @@ with tabs[3]:
             st.progress(projected["match_percent"] / 100)
 
             if ss.auth_user:
+                _hist_key = (ss.session or {}).get("user_id") or (ss.session or {}).get("username", "")
                 if st.button("💾 Save my progress"):
                     ok = api_client.save_progress(ss.session, ss.auth_user, target_role,
                                                   projected["match_percent"], new_learned)
                     ss.learned = new_learned
+                    cached_history.clear()     # new point saved -> drop stale cached reads
+                    cached_export.clear()
                     if ok and api_client.is_api(ss.session):
                         st.success("Progress saved to your account (backend).")
                     elif ok:
                         st.success("Progress saved locally (backend offline).")
                     else:
                         st.warning("Couldn't save progress right now.")
-                hist = api_client.get_history(ss.session)
+                hist = cached_history(ss.session, _hist_key)
                 if hist and len(hist) >= 2:
                     st.markdown('<div class="sec-label">📈 Your match score over time</div>',
                                 unsafe_allow_html=True)
@@ -1122,7 +1156,7 @@ with tabs[3]:
                     st.plotly_chart(_theme_fig(figh), width="stretch", theme=None, config=_PLOTLY_CFG)
                     st.caption(f"{len(hist)} saved snapshots — your readiness over time.")
                 with st.expander("☁️ Your saved data (backend)"):
-                    data = api_client.export_all(ss.session)
+                    data = cached_export(ss.session, _hist_key)
                     if data:
                         cprof = data.get("profile", {})
                         st.markdown(
@@ -1348,3 +1382,17 @@ with st.expander("📈 Live job-market data for " + target_role):
         st.markdown(ss.market_text)
     st.caption("Curated index is always-on; the AI pulse is an optional live read. "
                "We don't scrape job boards (ToS); this is the honest, deploy-safe version.")
+
+# ---------------------------------------------------------------- SITE FOOTER
+# Visible profile links (SEO audit: "create and link associated profiles").
+st.markdown(
+    '<div style="text-align:center; margin-top:26px; padding:12px 0 4px; '
+    'color:var(--sub); font-size:.92rem;">'
+    'Built by <strong>Darshan Dalvi</strong> &nbsp;·&nbsp; '
+    f'<a href="{seo.GITHUB_URL}" target="_blank" rel="me noopener" '
+    'style="color:var(--accent2); text-decoration:none;">GitHub</a> &nbsp;·&nbsp; '
+    f'<a href="{seo.LINKEDIN_URL}" target="_blank" rel="me noopener" '
+    'style="color:var(--accent2); text-decoration:none;">LinkedIn</a> &nbsp;·&nbsp; '
+    f'<a href="{seo.REPO_URL}" target="_blank" rel="noopener" '
+    'style="color:var(--accent2); text-decoration:none;">Source code</a>'
+    '</div>', unsafe_allow_html=True)
