@@ -533,7 +533,7 @@ with st.sidebar:
                                         ss.get("student_skills", []), "")
             except Exception:
                 pass
-        st.toast("🗑️ Résumés removed — add a new one anytime.")
+        st.toast("Résumés removed — add a new one anytime.", icon=":material/delete:")
     if ss.pop("_do_clear_all", False):
         if ss.auth_user and api_client.is_api(ss.session):
             try:
@@ -601,11 +601,11 @@ with st.sidebar:
                         not any(r["text"] == _t.strip() for r in ss.resumes):
                     ss.resumes.append({"name": _up.name, "text": _t.strip()})
         if ss.resumes:
-            st.markdown("**Your résumés** — tap 🗑️ to remove just that one:")
+            st.markdown("**Your résumés** — tap :material/delete: to remove just that one:")
             for _i, _r in enumerate(list(ss.resumes)):
                 _c1, _c2 = st.columns([0.8, 0.2])
                 _c1.markdown(f"📄 {_r['name']}")
-                if _c2.button("🗑️", key=f"del_resume_{_i}", help=f"Remove {_r['name']}"):
+                if _c2.button(":material/delete:", key=f"del_resume_{_i}", help=f"Remove {_r['name']}"):
                     ss.resumes.pop(_i)
                     st.rerun()
             resume_text = "\n\n".join(r["text"] for r in ss.resumes)
@@ -656,10 +656,10 @@ with st.sidebar:
         if _nres or (ss.get("resume_text") or "").strip():
             _lbl = (f"{_nres} résumé(s)" if _nres else "résumé text")
             st.caption(f"📄 {_lbl} on file.")
-            if st.button("🗑️ Remove all résumés", use_container_width=True, key="rm_resume_btn"):
+            if st.button("Remove all résumés", icon=":material/delete:", use_container_width=True, key="rm_resume_btn"):
                 ss["_do_clear_resume"] = True
                 st.rerun()
-            st.caption("Or delete them one-by-one with the 🗑️ next to each résumé above.")
+            st.caption("Or delete them one-by-one with the :material/delete: next to each résumé above.")
         else:
             st.caption("No résumé on file yet — upload or paste one above.")
         st.markdown("<hr style='margin:8px 0;border:0;border-top:1px solid "
