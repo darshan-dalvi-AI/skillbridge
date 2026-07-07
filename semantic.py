@@ -33,9 +33,11 @@ INDEX_PATH = os.path.join(_HERE, "skill_embeddings.json")
 EMBED_MODELS = ["text-embedding-004", "gemini-embedding-001", "embedding-001"]
 
 # Cosine-similarity cut-off for accepting an inferred skill. Higher = stricter
-# (fewer, more confident matches). Tune this after you build the index and try a
-# few real résumés — 0.55–0.70 is the sensible range for these models.
-SEMANTIC_THRESHOLD = 0.62
+# (fewer, more confident matches). 0.55–0.70 is the sensible range for these
+# models; 0.55 favours recall (catches secondary skills like Docker/SQL that a
+# résumé only describes) at a small risk of the odd loose match. Raise it if you
+# start seeing skills that aren't really implied.
+SEMANTIC_THRESHOLD = 0.55
 
 # Never flood the analysis: cap how many inferred skills we add per résumé.
 MAX_SEMANTIC = 10
