@@ -38,6 +38,7 @@ from share_card import build_share_card
 from report import build_report_pdf
 import auth
 import api_client
+import semantic
 
 # ---------------------------------------------------------------- IN-BROWSER PDF READER
 # A tiny static component that reads the chosen PDF *on the user's device* with pdf.js and
@@ -68,6 +69,7 @@ ss.setdefault("chat", [])
 ss.setdefault("interview_text", "")
 ss.setdefault("session", None)
 ss.setdefault("resume_text", "")
+ss.setdefault("semantic_on", True)
 ss.theme = "light" if ss.get("theme_toggle", False) else "dark"
 
 # ---------------------------------------------------------------- THEME / CSS
@@ -445,6 +447,14 @@ def cached_live_skills(role):
     return fetch_live_skills(role)
 
 
+@st.cache_data(ttl=3600, show_spinner="🧠 Inferring related skills…")
+def cached_semantic_skills(resume_text, already_tuple):
+    """Semantic (embedding/RAG) skill inference, cached by résumé text so the
+    Gemini embedding call runs once per unique résumé — reruns stay free.
+    Returns (added_skills, meta); ([], …) whenever the index or key is missing."""
+    return semantic.infer_skills(resume_text, list(already_tuple), API_KEY)
+
+
 @st.cache_data(ttl=60, show_spinner=False)
 def cached_history(_session, key):
     """Cache the user's progress history (a backend HTTP GET) for 60s so the
@@ -616,6 +626,23 @@ with st.sidebar:
 
     if not base_skills and ss.get("_restored_skills"):
         base_skills = ss["_restored_skills"]
+
+    # ---- optional semantic (embedding/RAG) skill inference --------------------
+    # When a résumé's TEXT is available and a precomputed index exists, also infer
+    # skills the résumé implies but never names outright. Silent no-op without the
+    # index or an API key, so the keyword result is always the safe baseline.
+    _sem_added = []
+    _sem_text = (resume_text or "").strip()
+    if _sem_text and semantic.index_exists():
+        if st.toggle("🧠 Smart semantic detection", key="semantic_on",
+                     help="Also infer skills your résumé implies but doesn't spell out "
+                          "(embeddings / RAG). Turn off for pure keyword matching."):
+            _sem_added, _sem_meta = cached_semantic_skills(_sem_text, tuple(base_skills))
+            if _sem_added:
+                base_skills = sorted(set(base_skills) | set(_sem_added))
+                st.caption(f"🧠 +{len(_sem_added)} inferred: " + ", ".join(_sem_added))
+    ss["semantic_added"] = _sem_added
+
     ss.student_skills = base_skills
     if ss.get("_restored_skills") and ss.auth_user:
         st.caption("↩️ Restored your saved profile — change any input to update it.")
@@ -865,6 +892,11 @@ with tabs[0]:
                     unsafe_allow_html=True)
         st.markdown(pills(result["matched_core"] + result["matched_bonus"], "pill-have"),
                     unsafe_allow_html=True)
+        _sem_hit = [s for s in ss.get("semantic_added", [])
+                    if s in (result["matched_core"] + result["matched_bonus"])]
+        if _sem_hit:
+            st.caption("🧠 Inferred semantically from your résumé (not named outright): "
+                       + ", ".join(_sem_hit))
 
         # Skills in demand (bar) + badges
         st.markdown('<div class="sec-label">🔥 Missing skills — ranked by employer '
