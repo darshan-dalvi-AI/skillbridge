@@ -39,6 +39,8 @@ from report import build_report_pdf
 import auth
 import api_client
 import semantic
+import planner
+import cover_letter
 
 # ---------------------------------------------------------------- IN-BROWSER PDF READER
 # A tiny static component that reads the chosen PDF *on the user's device* with pdf.js and
@@ -637,10 +639,15 @@ with st.sidebar:
         if st.toggle("🧠 Smart semantic detection", key="semantic_on",
                      help="Also infer skills your résumé implies but doesn't spell out "
                           "(embeddings / RAG). Turn off for pure keyword matching."):
-            _sem_added, _sem_meta = cached_semantic_skills(_sem_text, tuple(base_skills))
-            if _sem_added:
-                base_skills = sorted(set(base_skills) | set(_sem_added))
-                st.caption(f"🧠 +{len(_sem_added)} inferred: " + ", ".join(_sem_added))
+            _inferred, _sem_meta = cached_semantic_skills(_sem_text, tuple(base_skills))
+            if _inferred:
+                # let the user untick anything wrongly inferred (accept/reject)
+                _acc_key = "sem_acc_" + hashlib.md5(_sem_text.encode("utf-8")).hexdigest()[:8]
+                st.caption("🧠 Inferred from your résumé — untick any you don't actually have:")
+                _sem_added = st.multiselect("Inferred skills", _inferred, default=_inferred,
+                                            key=_acc_key, label_visibility="collapsed")
+                if _sem_added:
+                    base_skills = sorted(set(base_skills) | set(_sem_added))
     ss["semantic_added"] = _sem_added
 
     ss.student_skills = base_skills
@@ -1062,6 +1069,20 @@ with tabs[2]:
             st.success("You already meet this role's requirements — build projects "
                        "and start applying! 🚀")
         else:
+            # ---- Week-by-week study plan + calendar (.ics) export ----
+            st.markdown('<div class="sec-label">📅 Your week-by-week study plan</div>',
+                        unsafe_allow_html=True)
+            _hpw = st.slider("Study hours per week", 3, 30, 10, key="plan_hpw")
+            _weeks = planner.build_weekly_plan(timeline["per_skill"], hours_per_week=_hpw)
+            st.markdown(planner.plan_to_markdown(_weeks))
+            try:
+                _ics = planner.plan_to_ics(_weeks, title=f"SkillBridge — {target_role}")
+                st.download_button("📥 Add plan to calendar (.ics)", data=_ics,
+                                   file_name=f"SkillBridge_{target_role.replace(' ', '_')}_plan.ics",
+                                   mime="text/calendar", key="plan_ics")
+            except Exception as e:
+                st.caption(f"Calendar export unavailable: {e}")
+
             # AI Roadmap
             st.markdown('<div class="sec-label">🤖 AI learning roadmap</div>',
                         unsafe_allow_html=True)
@@ -1307,6 +1328,17 @@ with tabs[6]:
             jm = jd_match(student_skills, jd_text)
             jd_skills = jm["jd_skills"]
             note = ""
+            # semantic: also catch skills THIS JD implies but doesn't name explicitly
+            if semantic.index_exists():
+                _jd_inf, _ = cached_semantic_skills(jd_text, tuple(jd_skills))
+                if _jd_inf:
+                    jd_skills = sorted(set(jd_skills) | set(_jd_inf))
+                    _sset = set(student_skills)
+                    _mt = [s for s in jd_skills if s in _sset]
+                    jm = {"jd_skills": jd_skills, "matched": _mt,
+                          "missing": [s for s in jd_skills if s not in _sset],
+                          "match_percent": round(len(_mt) / len(jd_skills) * 100)}
+                    note = "🧠 Included skills this job description implies (semantic match)."
             # AI fallback: some JDs are prose / competency language with no plain skill
             # keywords. If the fast matcher finds nothing, let Gemini parse the JD.
             if not jd_skills:
@@ -1352,6 +1384,31 @@ with tabs[6]:
                 if ss.auth_user:
                     api_client.save_jd(ss.session, target_role, jm["match_percent"],
                                        jm["matched"], jm["missing"], jd_text)
+
+    # ---- AI cover-letter generator (uses your skills + this JD) ----
+    st.markdown("---")
+    st.markdown('<div class="sec-label">✍️ AI cover letter</div>', unsafe_allow_html=True)
+    if not student_skills:
+        st.caption("Add your skills in the sidebar to generate a tailored cover letter.")
+    else:
+        _cl1, _cl2 = st.columns(2)
+        _cl_company = _cl1.text_input("Company (optional)", key="cl_company")
+        _cl_lang = _cl2.selectbox("Language", ["English", "Hindi", "Marathi"], key="cl_lang")
+        if st.button("✍️ Generate cover letter", key="cl_btn"):
+            _cl_prompt = cover_letter.build_cover_letter_prompt(
+                ss.auth_user or "", target_role, student_skills,
+                jd_text=jd_text, company=_cl_company, language=_cl_lang)
+            with st.spinner("Writing your cover letter…"):
+                _cl_text, _cl_err = gemini_generate(_cl_prompt)
+            if _cl_err:
+                show_ai_error(_cl_err)
+            else:
+                ss["cover_letter_text"] = _cl_text
+        if ss.get("cover_letter_text"):
+            st.markdown(ss["cover_letter_text"])
+            st.download_button("⬇️ Download cover letter (.txt)", data=ss["cover_letter_text"],
+                               file_name=f"CoverLetter_{target_role.replace(' ', '_')}.txt",
+                               mime="text/plain", key="cl_dl")
 
 # ============================================================ TAB 7: AI MENTOR
 with tabs[7]:

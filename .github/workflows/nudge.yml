@@ -1,0 +1,26 @@
+name: Weekly nudge
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"      # every Monday 09:00 UTC
+  workflow_dispatch:          # allow manual runs (great for testing)
+
+jobs:
+  nudge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install requests
+      - name: Send weekly nudge (dry-run without secrets)
+        env:
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          NUDGE_TO: ${{ secrets.NUDGE_TO }}
+          NUDGE_FROM: ${{ secrets.NUDGE_FROM }}
+          NUDGE_NAME: ${{ secrets.NUDGE_NAME }}
+          NUDGE_ROLE: ${{ secrets.NUDGE_ROLE }}
+          NUDGE_MATCH: ${{ secrets.NUDGE_MATCH }}
+          NUDGE_SKILLS: ${{ secrets.NUDGE_SKILLS }}
+        run: python send_nudge.py

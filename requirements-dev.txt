@@ -1,0 +1,6 @@
+# Dev/test dependencies (not needed to run the app)
+pytest>=8.0
+# Optional, for the FAISS demo (kept out of the app's requirements.txt so it
+# doesn't slow the Streamlit Cloud cold start):
+# faiss-cpu>=1.8
+# numpy>=1.26
