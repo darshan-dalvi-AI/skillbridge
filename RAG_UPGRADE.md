@@ -52,17 +52,17 @@ RUNTIME  (semantic.py, per résumé)
 The app is safe to deploy **before** step 1 — without the index the feature is a
 no-op and the toggle simply doesn't appear.
 
-### Free-tier / quota note
+### AI provider: OpenRouter
 
-Embeddings use `gemini-embedding-001` (Google's free tier; `text-embedding-004`
-isn't available on all keys). The free tier is rate-limited, so if the build
-prints `429 / RESOURCE_EXHAUSTED` and stops early:
+All AI — text generation AND embeddings — routes through OpenRouter (see `llm.py`).
+Set `OPENROUTER_API_KEY` (env or `.streamlit/secrets.toml`); optionally override
+`OPENROUTER_MODEL` (chat) and `OPENROUTER_EMBED_MODEL` (default
+`openai/text-embedding-3-small`).
 
-- It has **saved everything embedded so far.**
-- Just **run `build_embeddings.bat` again** — it skips finished skills and
-  continues. Repeat until it prints *"Full index complete!"* (a minute-per-run
-  limit may mean two or three runs; a daily limit may mean running it again the
-  next day). Already-embedded work is never lost.
+Because OpenRouter is credit-based (no free-tier daily cap), `build_embeddings.bat`
+finishes the whole index in one run. It still saves incrementally and resumes if
+interrupted. If you switch the embedding model, the old index is ignored and
+rebuilt automatically — the runtime query always uses the same model as the index.
 
 ## Tuning
 

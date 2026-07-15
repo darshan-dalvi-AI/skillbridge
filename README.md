@@ -28,7 +28,7 @@ skills and a target role, then generates a concrete roadmap to close it.
 - ✅ **Manual skill select** — alternative to uploading
 - 🎯 **8 target roles** — AI/ML Engineer, Data Analyst, Frontend, Backend, and more
 - 📊 **Visual gap report** — match score, skills you have ✓, skills missing ✗
-- 🤖 **AI roadmap** — Gemini generates an ordered learning plan with free resources
+- 🤖 **AI roadmap** — an LLM (via OpenRouter) generates an ordered learning plan with free resources
 - 🎨 **Futuristic glassmorphism UI** — animated, modern, mobile-friendly
 
 ## 🏗️ Architecture
@@ -67,7 +67,7 @@ skills and a target role, then generates a concrete roadmap to close it.
 
 ## 🛠️ Tech stack
 
-Python · Streamlit · Google Gemini 2.0 Flash · pdfplumber · custom NLP
+Python · Streamlit · OpenRouter (LLM + embeddings) · pdfplumber · custom NLP
 (keyword + alias matching) · glassmorphism CSS.
 
 ## 🚀 Run locally
@@ -77,7 +77,7 @@ git clone https://github.com/darshan-dalvi-AI/skillbridge.git
 cd skillbridge
 pip install -r requirements.txt
 mkdir -p .streamlit
-echo 'GEMINI_API_KEY = "your-key"' > .streamlit/secrets.toml
+echo 'OPENROUTER_API_KEY = "your-key"' > .streamlit/secrets.toml
 streamlit run app.py
 ```
 
@@ -85,7 +85,7 @@ streamlit run app.py
 
 1. Push to a **public GitHub repo**
 2. **share.streamlit.io** → New app → select repo
-3. Advanced → Secrets → `GEMINI_API_KEY = "your-key"`
+3. Advanced → Secrets → `OPENROUTER_API_KEY = "your-key"`
 4. Deploy → public `*.streamlit.app` link 🎉
 
 ## 🔮 Future scope

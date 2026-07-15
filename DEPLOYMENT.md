@@ -71,7 +71,7 @@ Three pieces: **Streamlit Community Cloud** (frontend) + **Render** (backend) +
   set **Root Directory** = `skillgap`.
 - **Build command:** `pip install -r requirements.txt`
 - **Start command:** `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
-- **Environment variables:** `DATABASE_URL` (from Neon), `GEMINI_API_KEY`,
+- **Environment variables:** `DATABASE_URL` (from Neon), `OPENROUTER_API_KEY`,
   `ADZUNA_APP_ID`, `ADZUNA_APP_KEY`.
 - **Free-tier note:** the service **sleeps after 15 min** of no traffic and
   takes **~1 minute** to wake on the next request (750 free hours/month).
@@ -84,7 +84,7 @@ Three pieces: **Streamlit Community Cloud** (frontend) + **Render** (backend) +
 - In **Advanced settings → Secrets**, add:
   ```toml
   SKILLBRIDGE_API_URL = "https://skillbridge-api.onrender.com"
-  GEMINI_API_KEY = "your-gemini-key"
+  OPENROUTER_API_KEY = "your-openrouter-key"
   ADZUNA_APP_ID  = "your-adzuna-id"
   ADZUNA_APP_KEY = "your-adzuna-key"
   ```

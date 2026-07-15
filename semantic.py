@@ -12,12 +12,10 @@ Pipeline (RAG-style):
                                   BEST similarity to any sentence (higher recall
                                   than embedding the whole résumé as one vector).
 
-Search backend:
+All embeddings go through OpenRouter (see llm.py). Search backend:
   * default = pure-Python cosine (perfect for a few hundred skills, no deps).
   * optional = FAISS (set env SKILLBRIDGE_USE_FAISS=1 and build skill_faiss.index
-    with build_faiss.py). Any FAISS error falls back to pure-Python, so it can
-    never break the app. FAISS is kept OUT of requirements.txt so cold start
-    stays fast — it's an opt-in demo of the technique.
+    with build_faiss.py); any FAISS error falls back to pure-Python.
 
 Everything is defensive: no index / no key / embedding error -> ([], meta) and
 the caller keeps the keyword-only result.
@@ -29,19 +27,18 @@ import json
 import math
 from functools import lru_cache
 
+import llm
+
 # ---------------------------------------------------------------- config
 _HERE = os.path.dirname(os.path.abspath(__file__))
 INDEX_PATH = os.path.join(_HERE, "skill_embeddings.json")
 FAISS_INDEX_PATH = os.path.join(_HERE, "skill_faiss.index")
 FAISS_LABELS_PATH = os.path.join(_HERE, "skill_faiss_labels.json")
 
-EMBED_MODELS = ["gemini-embedding-001", "text-embedding-004", "embedding-001"]
-
-# Cosine cut-off for accepting an inferred skill. Higher = stricter. 0.55–0.70 is
-# sensible; 0.55 favours recall (catches secondary skills a résumé only describes)
-# at a small risk of the odd loose match. Raise it if you see skills that aren't
-# really implied.
-SEMANTIC_THRESHOLD = 0.55
+# Cosine cut-off for accepting an inferred skill. Higher = stricter. 0.35–0.55 is
+# sensible for OpenRouter embedding models (their raw cosines run lower than
+# Gemini's); 0.40 favours recall. Raise it if you see skills that aren't implied.
+SEMANTIC_THRESHOLD = 0.40
 MAX_SEMANTIC = 12          # cap on inferred skills added per résumé
 MAX_SENTENCES = 40         # cap sentences embedded per résumé (bounds cost/latency)
 MIN_WORDS = 3              # ignore very short fragments when splitting
@@ -103,131 +100,31 @@ def _split_sentences(text: str):
     return out
 
 
-# ---------------------------------------------------------------- embedding
-def _make_cfg(task_type, output_dim):
-    try:
-        from google.genai import types
-        try:
-            return (types.EmbedContentConfig(task_type=task_type, output_dimensionality=output_dim)
-                    if output_dim else types.EmbedContentConfig(task_type=task_type))
-        except Exception:
-            return types.EmbedContentConfig(task_type=task_type)
-    except Exception:
-        return None
-
-
-def _extract_values(resp):
-    """One float-vector from a single-content embed response (any SDK shape)."""
-    embs = getattr(resp, "embeddings", None)
-    if embs:
-        first = embs[0]
-        vals = getattr(first, "values", None)
-        if vals:
-            return vals
-        if isinstance(first, (list, tuple)):
-            return first
-    emb = getattr(resp, "embedding", None)
-    if emb is not None:
-        return getattr(emb, "values", emb)
-    if isinstance(resp, dict):
-        e = resp.get("embedding") or resp.get("embeddings")
-        if isinstance(e, dict):
-            return e.get("values")
-        return e
-    return None
-
-
-def _extract_all_values(resp):
-    """List of float-vectors from a batched embed response."""
-    embs = getattr(resp, "embeddings", None)
-    if embs:
-        out = []
-        for e in embs:
-            vals = getattr(e, "values", None)
-            out.append(list(vals) if vals else (list(e) if isinstance(e, (list, tuple)) else None))
-        return out
-    single = _extract_values(resp)
-    return [single] if single else None
-
-
-def embed_text(text: str, api_key: str, model: str = None, output_dim: int = None,
+# ---------------------------------------------------------------- embedding (via OpenRouter)
+def embed_text(text: str, api_key=None, model: str = None, output_dim: int = None,
                task_type: str = "RETRIEVAL_QUERY"):
-    """Embed ONE string. Returns (unit_vector, model_used, None) or (None, None, err).
-    `model`/`output_dim` should come from the index so the query matches the stored
-    skill vectors."""
-    if not api_key:
-        return None, None, "no_key"
+    """Embed ONE string through OpenRouter. Returns (unit_vector, model_used, None)
+    or (None, None, err). `api_key`/`output_dim`/`task_type` are accepted for
+    backward compatibility but the provider (llm.py) manages the key and model."""
     if not (text or "").strip():
         return None, None, "empty_text"
-    try:
-        from google import genai
-    except Exception as e:
-        return None, None, f"sdk_import_failed: {e}"
-    try:
-        client = genai.Client(api_key=api_key)
-    except Exception as e:
-        return None, None, str(e)
-
-    cfg = _make_cfg(task_type, output_dim)
-    last = "unknown embedding error"
-    for m in ([model] if model else EMBED_MODELS):
-        try:
-            resp = (client.models.embed_content(model=m, contents=text, config=cfg)
-                    if cfg is not None else
-                    client.models.embed_content(model=m, contents=text))
-            vals = _extract_values(resp)
-            if vals:
-                return _normalize(list(vals)), m, None
-            last = "empty embedding response"
-        except Exception as e:
-            last = str(e)
-            continue
-    return None, None, last
+    vecs, used, err = llm.embed([text], model=model)
+    if not vecs:
+        return None, None, err
+    return _normalize(list(vecs[0])), used, None
 
 
-def embed_texts(texts, api_key: str, model: str = None, output_dim: int = None,
+def embed_texts(texts, api_key=None, model: str = None, output_dim: int = None,
                 task_type: str = "RETRIEVAL_QUERY"):
-    """Embed a LIST of strings in ONE batched call. Returns (list_of_unit_vectors,
-    model_used, None) or (None, None, err). Falls back to per-item embedding if the
-    batch call is rejected."""
+    """Embed a LIST of strings in ONE OpenRouter request. Returns
+    (list_of_unit_vectors, model_used, None) or (None, None, err)."""
     texts = [t for t in (texts or []) if (t or "").strip()]
-    if not api_key:
-        return None, None, "no_key"
     if not texts:
         return None, None, "empty_text"
-    try:
-        from google import genai
-    except Exception as e:
-        return None, None, f"sdk_import_failed: {e}"
-    try:
-        client = genai.Client(api_key=api_key)
-    except Exception as e:
-        return None, None, str(e)
-
-    cfg = _make_cfg(task_type, output_dim)
-    last = "unknown embedding error"
-    for m in ([model] if model else EMBED_MODELS):
-        try:
-            resp = (client.models.embed_content(model=m, contents=texts, config=cfg)
-                    if cfg is not None else
-                    client.models.embed_content(model=m, contents=texts))
-            vecs = _extract_all_values(resp)
-            if vecs and len(vecs) == len(texts) and all(vecs):
-                return [_normalize(list(v)) for v in vecs], m, None
-            last = "batch shape mismatch"
-        except Exception as e:
-            last = str(e)
-            continue
-
-    # fallback: embed one at a time (slower, but robust)
-    out, used = [], None
-    for t in texts:
-        v, mm, e = embed_text(t, api_key, model=model, output_dim=output_dim, task_type=task_type)
-        if v is None:
-            return None, None, e
-        out.append(v)
-        used = mm
-    return out, used, None
+    vecs, used, err = llm.embed(texts, model=model)
+    if not vecs or len(vecs) != len(texts):
+        return None, None, (err or "embedding count mismatch")
+    return [_normalize(list(v)) for v in vecs], used, None
 
 
 # ---------------------------------------------------------------- search backends
@@ -302,7 +199,7 @@ def _score_skills(chunk_vecs, idx, already):
 
 
 # ---------------------------------------------------------------- public API
-def infer_skills(resume_text: str, already_found, api_key: str,
+def infer_skills(resume_text: str, already_found, api_key=None,
                  threshold: float = SEMANTIC_THRESHOLD, max_add: int = MAX_SEMANTIC):
     """
     Return (added_skills, meta).
@@ -322,10 +219,7 @@ def infer_skills(resume_text: str, already_found, api_key: str,
     if not chunks:
         return [], {"source": "error", "error": "empty_text"}
 
-    cvecs, model, err = embed_texts(chunks, api_key,
-                                    model=idx.get("model") or None,
-                                    output_dim=idx.get("dim") or None,
-                                    task_type="RETRIEVAL_QUERY")
+    cvecs, model, err = embed_texts(chunks, model=idx.get("model") or None)
     if not cvecs:
         return [], {"source": "error", "error": err}
 

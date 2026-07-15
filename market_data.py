@@ -28,24 +28,19 @@ def curated_market(role: str, top_n: int = 8) -> list:
     return ranked[:top_n]
 
 
-def ai_market_pulse(role: str, api_key: str, model: str = "gemini-2.5-flash"):
+def ai_market_pulse(role: str, api_key=None, model: str = None):
     """
-    Return (text, error). Asks Gemini for a short current market read for the
-    role in India. Caller falls back to curated_market() when error is set.
+    Return (text, error). Asks the AI (OpenRouter, via llm.chat) for a short
+    current market read for the role in India. Caller falls back to
+    curated_market() when error is set. `api_key` is accepted for backward
+    compatibility but ignored — llm.py manages credentials.
     """
-    if not api_key:
-        return None, "no_key"
-    try:
-        from google import genai
-        client = genai.Client(api_key=api_key)
-        prompt = (
-            "You are a tech-hiring analyst for the Indian job market in 2026.\n"
-            f"In 120 words or less, summarise what employers currently want from a "
-            f"fresher / junior {role}.\n"
-            "Cover: the 5-6 most in-demand skills, one or two rising tools, and one "
-            "hiring trend. Use short bullet points. Be specific and practical."
-        )
-        resp = client.models.generate_content(model=model, contents=prompt)
-        return resp.text, None
-    except Exception as e:
-        return None, str(e)
+    import llm
+    prompt = (
+        "You are a tech-hiring analyst for the Indian job market in 2026.\n"
+        f"In 120 words or less, summarise what employers currently want from a "
+        f"fresher / junior {role}.\n"
+        "Cover: the 5-6 most in-demand skills, one or two rising tools, and one "
+        "hiring trend. Use short bullet points. Be specific and practical."
+    )
+    return llm.chat(prompt, model=model)

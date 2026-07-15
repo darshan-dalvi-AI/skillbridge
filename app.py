@@ -16,7 +16,6 @@ wires everything together:
 import datetime
 import streamlit as st
 import plotly.graph_objects as go
-from google import genai
 import os
 import hashlib
 import streamlit.components.v1 as components
@@ -331,25 +330,9 @@ def _theme_fig(fig):
 # unreliable on touch); charts stay clean and still show hover tooltips.
 _PLOTLY_CFG = {"displayModeBar": False}
 
-# ---------------------------------------------------------------- API KEY
-def get_api_key() -> str:
-    try:
-        if "GEMINI_API_KEY" in st.secrets:
-            return st.secrets["GEMINI_API_KEY"]
-    except Exception:
-        pass
-    import os
-    return os.environ.get("GEMINI_API_KEY", "")
-
-
-API_KEY = get_api_key()
-
-
+# ---------------------------------------------------------------- AI (OpenRouter)
 import time
-
-# Models tried in order: if the primary is overloaded (503) or rate-limited (429),
-# we auto-retry then fall back to the next so AI features keep working.
-_AI_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite"]
+import llm
 
 
 def _ai_is_transient(err: str) -> bool:
@@ -359,62 +342,30 @@ def _ai_is_transient(err: str) -> bool:
                                 "deadline", "timeout", "429", "resource_exhausted"))
 
 
-def _ai_is_fatal(err: str) -> bool:
-    e = (err or "").lower()
-    return any(k in e for k in ("api key not valid", "api_key_invalid",
-                                "permission_denied", "unauthenticated", "invalid api key"))
-
-
-@st.cache_resource(show_spinner=False)
-def _get_genai_client(api_key: str):
-    """Create the Gemini client ONCE per process and reuse it, instead of
-    rebuilding it (new HTTP session + auth handshake) on every AI call.
-    Clients/connections are exactly what st.cache_resource is designed to hold."""
-    return genai.Client(api_key=api_key)
-
-
 def gemini_generate(prompt: str, model: str = None):
-    """Generate text with auto-retry + model fallback so a busy model (503) or a
-    demand spike (429) doesn't break the feature."""
-    if not API_KEY:
-        return None, "no_key"
-    try:
-        client = _get_genai_client(API_KEY)
-    except Exception as e:
-        return None, str(e)
-    chain = ([model] if model else []) + [m for m in _AI_MODELS if m != model]
-    last = "unknown error"
-    for m in chain:
-        for attempt in range(2):
-            try:
-                resp = client.models.generate_content(model=m, contents=prompt)
-                txt = getattr(resp, "text", None)
-                if txt:
-                    return txt, None
-                last = "The AI returned an empty response."
-                break
-            except Exception as e:
-                last = str(e)
-                if _ai_is_fatal(last):
-                    return None, last
-                if _ai_is_transient(last) and attempt == 0:
-                    time.sleep(1.6)      # brief backoff, then one retry on this model
-                    continue
-                break                     # otherwise move on to the next model
-    return None, last
+    """Generate text for every AI feature. Routes through OpenRouter (llm.chat),
+    which retries and falls back across models. (Function name kept so the many
+    existing call-sites don't need to change.)"""
+    return llm.chat(prompt, model=model)
 
 
 def show_ai_error(err: str):
+    e = err or ""
+    el = e.lower()
     if err == "no_key":
-        st.info("**Add your free Gemini API key** to use AI features "
-                "(`.streamlit/secrets.toml` → `GEMINI_API_KEY`).")
-    elif "RESOURCE_EXHAUSTED" in err or "429" in err:
-        st.warning("⏳ The free Gemini tier allows only a few requests per minute. "
-                   "Please wait ~30 seconds and try again.")
-    elif _ai_is_transient(err):
-        st.warning("🌐 The AI model is busy right now (high demand). I already tried a "
-                   "backup model automatically — please wait a few seconds and tap the "
-                   "button again. Your skills, résumé and results are safe.")
+        st.info("**Add your OpenRouter API key** to use AI features "
+                "(`.streamlit/secrets.toml` → `OPENROUTER_API_KEY`).")
+    elif "402" in e or "payment" in el or "credit" in el:
+        st.warning("💳 Your OpenRouter account is out of credits. Add credits at "
+                   "openrouter.ai to re-enable the AI features.")
+    elif "401" in e or "invalid api key" in el:
+        st.error("🔑 The OpenRouter API key looks invalid — check `OPENROUTER_API_KEY` "
+                 "in your secrets.")
+    elif "429" in e or "rate limit" in el:
+        st.warning("⏳ Rate-limited right now. Please wait ~30 seconds and try again.")
+    elif _ai_is_transient(e):
+        st.warning("🌐 The AI model is busy right now. I already tried a backup model "
+                   "automatically — wait a few seconds and try again. Your data is safe.")
     else:
         st.error(f"Something went wrong: {err}")
 
@@ -454,7 +405,7 @@ def cached_semantic_skills(resume_text, already_tuple):
     """Semantic (embedding/RAG) skill inference, cached by résumé text so the
     Gemini embedding call runs once per unique résumé — reruns stay free.
     Returns (added_skills, meta); ([], …) whenever the index or key is missing."""
-    return semantic.infer_skills(resume_text, list(already_tuple), API_KEY)
+    return semantic.infer_skills(resume_text, list(already_tuple))
 
 
 @st.cache_data(ttl=60, show_spinner=False)
@@ -1462,7 +1413,7 @@ with st.expander("📈 Live job-market data for " + target_role):
                    ".streamlit/secrets.toml) to pull REAL live job postings here.")
     if st.button("🔮 AI market summary"):
         with st.spinner("Reading the job market…"):
-            text, err = ai_market_pulse(target_role, API_KEY)
+            text, err = ai_market_pulse(target_role)
         if err:
             show_ai_error(err)
         else:

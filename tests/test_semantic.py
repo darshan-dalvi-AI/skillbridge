@@ -42,9 +42,7 @@ def test_infer_no_index(tmp_path):
 def test_infer_matches_by_sentence(tmp_path, monkeypatch):
     _write_fake_index(tmp_path)
 
-    def fake_embed_texts(texts, api_key, model=None, output_dim=None, task_type="RETRIEVAL_QUERY"):
-        if not api_key:
-            return None, None, "no_key"
+    def fake_embed_texts(texts, api_key=None, model=None, output_dim=None, task_type="RETRIEVAL_QUERY"):
         # every sentence points mostly along the "Deep Learning" axis
         return [semantic._normalize([0.9, 0.4, 0.0]) for _ in texts], model, None
 
@@ -67,9 +65,8 @@ def test_infer_excludes_already_found(tmp_path, monkeypatch):
     _write_fake_index(tmp_path)
     monkeypatch.setattr(
         semantic, "embed_texts",
-        lambda texts, api_key, model=None, output_dim=None, task_type="RETRIEVAL_QUERY":
-        ([semantic._normalize([0.9, 0.4, 0.0]) for _ in texts], model, None) if api_key
-        else (None, None, "no_key"))
+        lambda texts, api_key=None, model=None, output_dim=None, task_type="RETRIEVAL_QUERY":
+        ([semantic._normalize([0.9, 0.4, 0.0]) for _ in texts], model, None))
     added, _ = semantic.infer_skills(
         "deep learning sentence here", ["Deep Learning"], "KEY", threshold=0.5)
     assert "Deep Learning" not in added

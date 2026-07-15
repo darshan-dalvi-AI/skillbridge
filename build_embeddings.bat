@@ -4,8 +4,8 @@ cd /d "%~dp0"
 
 echo ============================================================
 echo   Building the skill-embedding index (skill_embeddings.json)
-echo   This calls Gemini once per skill and takes ~1-2 minutes.
-echo   Your key is read from .streamlit\secrets.toml automatically.
+echo   This calls OpenRouter (batched) and takes about a minute.
+echo   Your OPENROUTER_API_KEY is read from .streamlit\secrets.toml automatically.
 echo ============================================================
 echo.
 
@@ -21,8 +21,8 @@ if not defined PY (
   exit /b 1
 )
 
-echo Making sure the Gemini SDK is installed...
-%PY% -m pip install --quiet --disable-pip-version-check google-genai
+echo Making sure the HTTP library is installed...
+%PY% -m pip install --quiet --disable-pip-version-check requests
 
 echo.
 echo Building index...
