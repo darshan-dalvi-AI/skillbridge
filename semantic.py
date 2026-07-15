@@ -35,10 +35,11 @@ INDEX_PATH = os.path.join(_HERE, "skill_embeddings.json")
 FAISS_INDEX_PATH = os.path.join(_HERE, "skill_faiss.index")
 FAISS_LABELS_PATH = os.path.join(_HERE, "skill_faiss_labels.json")
 
-# Cosine cut-off for accepting an inferred skill. Higher = stricter. 0.35–0.55 is
-# sensible for OpenRouter embedding models (their raw cosines run lower than
-# Gemini's); 0.40 favours recall. Raise it if you see skills that aren't implied.
-SEMANTIC_THRESHOLD = 0.40
+# Cosine cut-off for accepting an inferred skill. Higher = stricter. With
+# openai/text-embedding-3-small the raw cosines run low, so 0.35 is tuned to catch
+# core implied skills (e.g. Deep Learning / Computer Vision from "CNNs that
+# classify images") without much noise. Raise it if you see skills that aren't implied.
+SEMANTIC_THRESHOLD = 0.35
 MAX_SEMANTIC = 12          # cap on inferred skills added per résumé
 MAX_SENTENCES = 40         # cap sentences embedded per résumé (bounds cost/latency)
 MIN_WORDS = 3              # ignore very short fragments when splitting
